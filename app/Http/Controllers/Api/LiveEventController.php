@@ -103,7 +103,7 @@ class LiveEventController extends Controller
                 $result->responseResult->payment_url = $result->responseResult->redirect_url;
             }
 
-            \App\Models\Paytabs::query()
+          $paytab =   \App\Models\Paytabs::query()
                 ->create([
                     'payment_reference' => $result->responseResult->tran_ref,
                     'user_id' => $request->get('user_id'),
@@ -111,7 +111,14 @@ class LiveEventController extends Controller
                     'create_response' => $result,
                     'related_type' => LiveEvent::class
                 ]);
-                $user->notify(new SuccessfullyBuyEvent($liveEvent));
+
+                if($paytab){
+                    if($paytab->verify_payment_response){
+                        $user->notify(new SuccessfullyBuyEvent($liveEvent));
+                    }
+                    
+                }
+              
                 
             return ApiHelper::output($result);
         } else {
