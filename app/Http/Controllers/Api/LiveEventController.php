@@ -33,11 +33,9 @@ class LiveEventController extends Controller
     public function index()
     {
         $liveEvents = LiveEvent::query()
-        ->active()
-        ->withCount('usersAttendee')
         ->select('live_events.*', DB::raw('COUNT(live_event_attendees.user_id) as users_attendee_count'))
         ->leftJoin('live_event_attendees', 'live_event_attendees.live_event_id', '=', 'live_events.id')
-        ->groupBy('live_events.id')
+        ->groupBy('live_events.id', 'live_events.is_paid', 'live_events.price', 'live_events.event_at', 'live_events.duration_event', 'live_events.event_presenter', 'live_events.name', 'live_events.description', 'live_events.agenda', 'live_events.status', 'live_events.image', 'live_events.number_of_seats')
         ->havingRaw('users_attendee_count < number_of_seats')
         ->get();
 
