@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\User;
-use App\Models\LiveEvent;
 use App\Helpers\ApiHelper;
+use App\Http\Controllers\Controller;
+use App\Models\LiveEvent;
+use App\Models\User;
+use App\Notifications\SuccessfullySubscriptionLiveEventNotification;
+use App\Services\Paytabs\PaytabService;
+use App\Services\Zoom\ZoomService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Spatie\FlareClient\Api;
 use Termwind\Components\Li;
-use Illuminate\Http\Request;
-use App\Services\Zoom\ZoomService;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
-use App\Services\Paytabs\PaytabService;
 use App\Notifications\SuccessfullyBuyEvent;
-use App\Notifications\SuccessfullySubscriptionLiveEventNotification;
 
 class LiveEventController extends Controller
 {
@@ -33,12 +32,9 @@ class LiveEventController extends Controller
      */
     public function index()
     {
-         $liveEvents = LiveEvent::query()
-        ->select('live_events.*', DB::raw('COUNT(live_event_attendees.user_id) as users_attendee_count'))
-        ->leftJoin('live_event_attendees', 'live_event_attendees.live_event_id', '=', 'live_events.id')
-        ->groupBy('live_events.id', 'live_events.is_paid', 'live_events.price', 'live_events.event_at', 'live_events.duration_event', 'live_events.event_presenter', 'live_events.name', 'live_events.description', 'live_events.agenda', 'live_events.status', 'live_events.image', 'live_events.number_of_seats')
-        ->havingRaw('users_attendee_count < number_of_seats')
-        ->get();
+        $liveEvents = LiveEvent::query()
+            ->active()
+            ->get();
 
         return ApiHelper::output($liveEvents);
     }
