@@ -58,8 +58,10 @@ class LiveEventController extends Controller
         
         if($liveEvent->number_of_seats){
             Log::info($liveEvent->number_of_seats. 'number of seats');
+
             if($liveEvent->number_of_seats <= $liveEvent->usersAttendee()->count()){
                 Log::info('must stop');
+                return;
                 return ApiHelper::output( 'لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }    
         }else{
