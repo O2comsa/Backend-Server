@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class LiveEvent extends Model
 {
@@ -44,6 +45,11 @@ class LiveEvent extends Model
         return $this->belongsToMany(User::class, 'live_event_attendees');
     }
 
+    public function scopeWithAvailableSeats(Builder $query): void
+    {
+        $query->withCount('usersAttendee')
+              ->having('users_attendee_count', '<', DB::raw('number_of_seats'));
+    }
     /**
      * Scope a query to only include active users.
      */
