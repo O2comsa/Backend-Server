@@ -63,6 +63,8 @@ class LiveEventController extends Controller
             }    
         }
 
+        // edit now $argv
+
         if (!$liveEvent->is_paid || empty($liveEvent->price)) {
             $liveEvent->usersAttendee()->syncWithoutDetaching($request->get('user_id'));
 
