@@ -35,10 +35,11 @@ class LiveEventController extends Controller
         $liveEvents = LiveEvent::query()
         ->active()
         ->withCount('usersAttendee')
-        ->get()
-        ->filter(function ($event) {
-            return $event->users_attendee_count < $event->number_of_seats;
-        });
+        ->select('live_events.*', DB::raw('COUNT(live_event_attendees.user_id) as users_attendee_count'))
+        ->leftJoin('live_event_attendees', 'live_event_attendees.live_event_id', '=', 'live_events.id')
+        ->groupBy('live_events.id')
+        ->havingRaw('users_attendee_count < number_of_seats')
+        ->get();
 
         return ApiHelper::output($liveEvents);
     }
