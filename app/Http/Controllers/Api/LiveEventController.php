@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\ApiHelper;
-use App\Http\Controllers\Controller;
-use App\Models\LiveEvent;
 use App\Models\User;
-use App\Notifications\SuccessfullySubscriptionLiveEventNotification;
-use App\Services\Paytabs\PaytabService;
-use App\Services\Zoom\ZoomService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use App\Models\LiveEvent;
+use App\Helpers\ApiHelper;
 use Spatie\FlareClient\Api;
 use Termwind\Components\Li;
+use Illuminate\Http\Request;
+use App\Services\Zoom\ZoomService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Services\Paytabs\PaytabService;
 use App\Notifications\SuccessfullyBuyEvent;
+use App\Notifications\SuccessfullySubscriptionLiveEventNotification;
 
 class LiveEventController extends Controller
 {
