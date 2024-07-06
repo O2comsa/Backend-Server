@@ -6,6 +6,12 @@
     <input type="email" class="form-control" id="email"
            name="email" placeholder="@lang('app.email')" value="{{ $edit ? $user->email : old('email') }}">
 </div>
+
+<div class="form-group">
+    <label for="mobile">@lang('app.mobile')</label>
+    <input type="mobile" class="form-control" id="mobile"
+           name="mobile" placeholder="@lang('app.mobile')" value="{{ $edit ? $user->mobile : old('mobile') }}">
+</div>
 {{--<div class="form-group">--}}
 {{--    <label for="mobile">@lang('app.mobile')</label>--}}
 {{--    <input type="number" class="form-control" id="mobile"--}}
