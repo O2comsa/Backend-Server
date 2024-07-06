@@ -64,10 +64,7 @@ class LiveEventController extends Controller
                 return;
                 return ApiHelper::output( 'لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }    
-        }else{
-            Log::info('not stoped'. 'number of seats');
         }
-
         // edit now $argv
 
         if (!$liveEvent->is_paid || empty($liveEvent->price)) {
@@ -121,7 +118,7 @@ class LiveEventController extends Controller
 
                 if($paytab){
                     if($paytab->verify_payment_response){
-                        $user->notify(new SuccessfullyBuyEvent($liveEvent));
+                        // $user->notify(new SuccessfullyBuyEvent($liveEvent));
                     }
                     
                 }
