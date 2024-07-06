@@ -88,7 +88,10 @@ class PaytabsController extends Controller
                             'email' => $paytabs->user->email
                         ], $paytabs->user_id);
 
-                        $paytabs->user->notify(new SuccessfullySubscriptionLiveEventNotification($paytabs->related));
+                        if($paytabs->verify_payment_response){
+                            $paytabs->user->notify(new SuccessfullySubscriptionLiveEventNotification($paytabs->related));
+                        }
+                      
                     } catch (\Exception $exception) {
                     }
 
