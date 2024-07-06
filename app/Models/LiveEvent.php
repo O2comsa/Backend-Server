@@ -46,13 +46,14 @@ class LiveEvent extends Model
     }
 
     public function scopeActiveWithAvailableSeats(Builder $query): void
-    {
-        $query->where('status', self::ACTIVE_STATUS)
-              ->select('live_events.*')
-              ->leftJoin('live_event_attendees', 'live_event_attendees.live_event_id', '=', 'live_events.id')
-              ->groupBy('live_events.id')
-              ->havingRaw('COUNT(live_event_attendees.user_id) < live_events.number_of_seats');
-    }
+{
+    $query->select('live_events.*')
+          ->leftJoin('live_event_attendees', 'live_event_attendees.live_event_id', '=', 'live_events.id')
+          ->where('live_events.status', self::ACTIVE_STATUS)
+          ->groupBy('live_events.id', 'live_events.is_paid', 'live_events.price', 'live_events.event_at', 'live_events.duration_event', 'live_events.event_presenter', 'live_events.name', 'live_events.description', 'live_events.agenda', 'live_events.status', 'live_events.image', 'live_events.number_of_seats')
+          ->havingRaw('COUNT(live_event_attendees.user_id) < live_events.number_of_seats');
+}
+
     /**
      * Scope a query to only include active users.
      */
