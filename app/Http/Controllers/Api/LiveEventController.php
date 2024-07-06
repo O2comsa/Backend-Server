@@ -33,8 +33,11 @@ class LiveEventController extends Controller
     public function index()
     {
         $liveEvents = LiveEvent::query()
-            ->active()
-            ->get();
+        ->active()
+        ->withCount('usersAttendee')
+        ->select('live_events.*')
+        ->havingRaw('users_attendee_count < number_of_seats')
+        ->get();
 
         return ApiHelper::output($liveEvents);
     }
