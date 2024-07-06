@@ -32,7 +32,7 @@ class LiveEventController extends Controller
      */
     public function index()
     {
-        $liveEvents = LiveEvent::activeWithAvailableSeats()->get();
+        $liveEvents = LiveEvent::active()->get();
 
 
         return ApiHelper::output($liveEvents);
