@@ -34,7 +34,6 @@ class LiveEventController extends Controller
     {
         $liveEvents = LiveEvent::query()
             ->active()
-            ->withAvailableSeats()
             ->get();
 
         return ApiHelper::output($liveEvents);
