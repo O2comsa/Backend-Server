@@ -45,10 +45,12 @@ class LiveEvent extends Model
         return $this->belongsToMany(User::class, 'live_event_attendees');
     }
 
-    public function scopeWithAvailableSeats(Builder $query): void
+     public function scopeWithAvailableSeats(Builder $query): void
     {
         $query->withCount('usersAttendee')
-              ->having('users_attendee_count', '<', DB::raw('number_of_seats'));
+              ->havingRaw('users_attendee_count < number_of_seats')
+              ->select('live_events.*')
+              ->groupBy('live_events.id', 'live_events.number_of_seats', 'live_events.is_paid', 'live_events.price', 'live_events.event_at', 'live_events.duration_event', 'live_events.event_presenter', 'live_events.name', 'live_events.description', 'live_events.agenda', 'live_events.status', 'live_events.image');
     }
     /**
      * Scope a query to only include active users.
