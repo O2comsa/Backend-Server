@@ -25,7 +25,7 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping
     {
         $query = Transaction::query()->latest()->where('in', '>', 0)
             ->join('users', 'transactions.user_id', '=', 'users.id')
-            ->select('transactions.*', 'users.name as user_name');
+            ->select('transactions.*', 'users.name as user_name', 'users.national_id');
 
         if ($this->from_date && $this->from_date != 'all') {
             $query->whereDate('transactions.created_at', '>=', $this->from_date);
@@ -35,10 +35,10 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping
             $query->whereDate('transactions.created_at', '<=', $this->to_date);
         }
 
-        // Add the search condition
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('users.name', 'like', '%'.$this->search.'%')
+                    ->orWhere('users.national_id', 'like', '%'.$this->search.'%')
                     ->orWhere('transactions.in', 'like', '%'.$this->search.'%')
                     ->orWhere('transactions.note', 'like', '%'.$this->search.'%');
             });
@@ -52,6 +52,7 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping
         return [
             'ID',
             'User',
+            'National ID',
             'Amount',
             'Note',
             'Order Date',
@@ -60,10 +61,10 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping
 
     public function map($transaction): array
     {
-        $key = 1;
         return [
             $this->key++,
             $transaction->user_name,
+            $transaction->national_id,
             $transaction->in,
             $transaction->note,
             $transaction->created_at->format('Y-m-d'),
