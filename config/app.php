@@ -175,8 +175,8 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        // App\Providers\TelescopeServiceProvider::class,
-        // Laravel\Telescope\TelescopeServiceProvider::class,
+        App\Providers\TelescopeServiceProvider::class,
+        Laravel\Telescope\TelescopeServiceProvider::class,
 
         \App\Providers\ZoomEventServiceProvider::class,
         \App\Providers\ZoomServiceProvider::class
