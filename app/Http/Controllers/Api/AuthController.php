@@ -9,6 +9,7 @@ use App\Notifications\ResetPassword;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -52,6 +53,7 @@ class AuthController extends Controller
     // Login
     public function login(Request $request)
     {
+        Log::info('Login from current user');
         ApiHelper::validate($request, ['email' => 'required|email', 'password' => 'required|min:6']);
         $email = $request->email;
         $password = $request->password;
