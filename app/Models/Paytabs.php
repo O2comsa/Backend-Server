@@ -26,10 +26,10 @@ class Paytabs extends Model
         'updated_at' => 'datetime',
     ];
 
-    public function getUpdatedAtAttribute()
-    {
-        return Carbon::parse($this->updated_at)->format("Y-m-d H:i:s");
-    }
+    // public function getUpdatedAtAttribute()
+    // {
+    //     return Carbon::parse($this->updated_at)->format("Y-m-d H:i:s");
+    // }
 
     public function user()
     {
