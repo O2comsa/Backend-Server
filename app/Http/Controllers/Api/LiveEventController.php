@@ -32,6 +32,7 @@ class LiveEventController extends Controller
      */
     public function index()
     {
+        Log::info('All Live event');
         $liveEvents = LiveEvent::active()->get();
 
 
