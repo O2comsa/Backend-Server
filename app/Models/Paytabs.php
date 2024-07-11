@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Paytabs extends Model
@@ -24,6 +25,11 @@ class Paytabs extends Model
         'verify_payment_response' => 'json',
         'updated_at' => 'datetime',
     ];
+
+    public function getUpdatedAtAttribute()
+    {
+        return Carbon::parse($this->updated_at)->format("Y-m-d H:i:s");
+    }
 
     public function user()
     {
