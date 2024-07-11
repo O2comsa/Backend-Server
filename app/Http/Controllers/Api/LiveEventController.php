@@ -50,6 +50,7 @@ class LiveEventController extends Controller
 
     public function buyEvent(Request $request)
     {
+        Log::log('you are here now check another way s');
         ApiHelper::validate($request, [
             'liveEvent_id' => "required|exists:live_events,id",
         ]);
