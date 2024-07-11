@@ -70,6 +70,9 @@ class PaytabsTransactionsController extends Controller
                 return $row->paid ? trans('app.paid') : '';
             })
             ->rawColumns(['action', 'user', 'created_at', 'transaction_note', 'course','paid'])
+            ->addColumn('updated_at', function ($row) {
+                return $row->updated_at->diffForHumans();
+            })
             ->make(true);
     }
 
