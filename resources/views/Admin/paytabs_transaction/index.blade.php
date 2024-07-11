@@ -99,7 +99,7 @@
                     {data: 'payment_reference', name: 'payment_reference'},
                     {data: 'transaction_note', name: 'transaction_note'},
                     {data: 'paid', name: 'paid'},
-                    {data: 'created_at', name: 'created_at', orderable: false,},
+                    {data: 'updated_at', name: 'updated_at', orderable: false,},
                     {data: 'action', name: 'action', orderable: false,},
                 ]
             });
