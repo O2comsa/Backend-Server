@@ -424,7 +424,8 @@ return [
     'stores'=>'Stores',
     'last_used'=>'Last Used',
     'count_used'=>'Count Used',
-    ''=>'',
+
+    'national_id'=>'National Id',
     ''=>'',
     ''=>'',
     ''=>'',

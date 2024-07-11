@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Helpers\UserType;
+use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Response;
 use Yajra\DataTables\DataTables;
 
@@ -29,40 +28,40 @@ class TransactionsController extends Controller
         return view('Admin.transaction.index');
     }
 
-    public function getTransactions(Request $request,$from = null, $to = null)
+    public function getTransactions(Request $request, $from = null, $to = null)
     {
-        
         $from = $request->from_date;
         $to = $request->to_date;
         $transaction = Transaction::query()->where('in', '>', 0);
 
-        if (isset($from) && $request->from != 'all' && isset($to) && $to != 'all') {
+        if (isset($from) && $from != 'all' && isset($to) && $to != 'all') {
             $transaction = $transaction->whereBetween('created_at', [$from, $to]);
         } else {
             if (isset($from) && $from != 'all') {
                 $transaction = $transaction->whereDate('created_at', '<=', $from);
-            }   
+            }
             if (isset($to) && $to != 'all') {
                 $transaction = $transaction->whereDate('created_at', '>=', $to);
             }
         }
 
         $transaction = $transaction->whereHas('user')->with('user')->latest();
-        
+
         return DataTables::of($transaction)
             ->addIndexColumn()
             ->editColumn('user', function ($transaction) {
                 return $transaction->user->name;
             })
+            ->addColumn('national_id', function ($transaction) { // Add this line
+                return $transaction->user->national_id; // Add this line
+            })
             ->filterColumn('user', function ($query, $keyword) {
-                
                 $query->whereHas('user', function ($query) use ($keyword) {
                     $query->where('name', 'like', "%{$keyword}%");
                 });
             })
             ->make(true);
     }
-
 
     /**
      * Show the form for creating a new resource.

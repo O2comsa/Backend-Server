@@ -897,4 +897,5 @@ return [
     'export' => 'تصدير',
     'number_of_seats' => 'عدد المقاعد',
     'addLiveEvent' => 'حفظ التغيرات',
+    'national_id' =>"رقم الهوية"
 ];
