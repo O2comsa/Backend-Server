@@ -32,7 +32,6 @@ class LiveEventController extends Controller
      */
     public function index()
     {
-        Log::info('All Live event');
         $liveEvents = LiveEvent::active()->get();
 
 
@@ -51,7 +50,7 @@ class LiveEventController extends Controller
 
     public function buyEvent(Request $request)
     {
-        Log::log('you are here now check another way s');
+        
         ApiHelper::validate($request, [
             'liveEvent_id' => "required|exists:live_events,id",
         ]);
@@ -59,10 +58,10 @@ class LiveEventController extends Controller
         $liveEvent = LiveEvent::query()->findOrFail($request->get('liveEvent_id'));
         
         if($liveEvent->number_of_seats){
-            Log::info($liveEvent->number_of_seats. 'number of seats');
+            
 
             if($liveEvent->number_of_seats <= $liveEvent->usersAttendee()->count()){
-                Log::info('must stop');
+                
                 return;
                 return ApiHelper::output( 'لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }    
@@ -101,7 +100,7 @@ class LiveEventController extends Controller
             ]
         ]);
 
-        Log::info('Payment ', (array)$result);
+        
 
         if ($result->success) {
 
