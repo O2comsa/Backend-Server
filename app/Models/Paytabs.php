@@ -22,6 +22,7 @@ class Paytabs extends Model
     protected $casts = [
         'create_response' => 'json',
         'verify_payment_response' => 'json',
+        'updated_at' => 'datetime',
     ];
 
     public function user()
