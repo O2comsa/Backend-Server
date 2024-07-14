@@ -98,7 +98,7 @@
                     {data: 'national_id', name: 'national_id'}, // New column for National ID
                     {data: 'in', name: 'in'},
                     {data: 'note', name: 'note'},
-                    {data: 'created_at', name: 'created_at', orderable: false}
+                    {data: 'updated_at', name: 'updated_at', orderable: false}
                 ]
             });
 

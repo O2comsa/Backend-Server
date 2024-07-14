@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Yajra\DataTables\DataTables;
@@ -54,6 +55,9 @@ class TransactionsController extends Controller
             })
             ->addColumn('national_id', function ($transaction) { // Add this line
                 return $transaction->user->national_id; // Add this line
+            })
+            ->addColumn('updated_at', function ($transaction) { // Add this line
+                return Carbon::parse($transaction->updated_at)->format('Y-m-d H:i'); // Add this line
             })
             ->filterColumn('user', function ($query, $keyword) {
                 $query->whereHas('user', function ($query) use ($keyword) {
