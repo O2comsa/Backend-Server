@@ -177,7 +177,10 @@ class PushNotifications extends Controller
 
     public static function sendNotificationToAll($title, $message)
     {
-        SendNotificationToAllUsersJob::dispatch($title, $message);
+        User::whereNotNull('device_token')->chunk(100, function($users) use ($title, $message) {
+            dispatch(new SendNotificationToAllUsersJob($users, $title, $message));
+        });
+        // SendNotificationToAllUsersJob::dispatch($title, $message);
     }
 
 }

@@ -19,11 +19,12 @@ class SendNotificationToAllUsersJob implements ShouldQueue
 
     protected $title;
     protected $message;
-
-    public function __construct($title, $message)
+    protected $users;
+    public function __construct($users,$title, $message)
     {
         $this->title = $title;
         $this->message = $message;
+        $this->users= $users;
     }
     
 
@@ -34,8 +35,7 @@ class SendNotificationToAllUsersJob implements ShouldQueue
     {
         try {
             // Fetch all users with non-null deviceToken
-            $users = User::whereNotNull('device_token')->get();
-            foreach ($users as $user) {
+            foreach ($this->users as $user) {
                 $projectId = "eshartiapp";
     
                 $credentialsFilePath = Storage::path('json/file.json');
