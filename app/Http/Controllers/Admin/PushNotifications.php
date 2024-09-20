@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\Request;
+use App\Traits\FCMNotification;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
+use Google\Client as GoogleClient;
 
 
 class PushNotifications extends Controller
 {
+    use FCMNotification;
     public function __construct()
     {
         $this->middleware('auth');
@@ -29,9 +33,9 @@ class PushNotifications extends Controller
     //
     public static function sendMessage($message, $device_tokens, $data = null)
     {
-        \Log::info($message .' - '. $device_tokens);
+        \Log::info($message . ' - ' . $device_tokens);
 
-        if (!is_array($device_tokens)){
+        if (!is_array($device_tokens)) {
             $device_tokens = [$device_tokens];
         }
 
@@ -66,14 +70,13 @@ class PushNotifications extends Controller
             return $response;
         } catch (\Exception $exception) {
             \Log::debug($exception->getMessage());
-
         }
     }
 
-   
 
 
-     /* public static function sendNotificationToAll($title, $message)
+
+    /* public static function sendNotificationToAll($title, $message)
     {
         try {
             $content = ['en' => $message];
@@ -114,38 +117,66 @@ class PushNotifications extends Controller
     } 
     */
 
-        public static function sendNotificationToAll($title, $message)
+    public  function sendNotificationToAll($title, $message)
     {
         try {
             // Fetch all users with non-null deviceToken
             $users = User::whereNotNull('device_token')->get();
-            
-            foreach ($users as $user) {
-                $data = [
-                    'notification' => [
-                        'title' => $title,
-                        'body' => $message,
-                    ],
-                    'to' => $user->device_token, // Target individual device token
+            foreach($users as $user) {
+                $title = $title;
+                $description = $message;
+                $projectId = "eshartiapp";
+    
+                $credentialsFilePath = Storage::path('json/file.json');
+                $client = new GoogleClient();
+                $client->setAuthConfig($credentialsFilePath);
+                $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+                $client->refreshTokenWithAssertion();
+                $token = $client->getAccessToken();
+    
+                $access_token = $token['access_token'];
+    
+                $headers = [
+                    "Authorization: Bearer $access_token",
+                    'Content-Type: application/json'
                 ];
-
-                $dataString = json_encode($data);
-
+    
+                $data = [
+                    "message" => [
+                        "token" => $user->device_token,
+                        "notification" => [
+                            "title" => $title,
+                            "body" => $description,
+                        ],
+                    ]
+                ];
+                $payload = json_encode($data);
+    
                 $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
+                curl_setopt($ch, CURLOPT_URL, "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send");
                 curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    'Authorization: key=' . 'AAAATb_rC30:APA91bEhDZDQwQJTmvDN7NL0IoLsQ8txcwdI_DjRzAjIIztMKFNLC0EnZ735KY4JGgRWIcFWE49W0qBI54-vJTErx8CvqgNoVYGw0PX268HPPcsSAoJUv1SDprlQ4SzaokxOsTRWIqsD', // Your server key
-                    'Content-Type: application/json',
-                ]);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+                curl_setopt($ch, CURLOPT_VERBOSE, true); // Enable verbose output for debugging
                 $response = curl_exec($ch);
+                $err = curl_error($ch);
                 curl_close($ch);
-                // Optionally, you can log or handle the response here
-                // Log::info('Notification sent: ' . $response);
+    
+                if ($err) {
+                    return response()->json([
+                        'message' => 'Curl Error: ' . $err
+                    ], 500);
+                } else {
+                    return response()->json([
+                        'message' => 'Notification has been sent',
+                        'response' => json_decode($response, true)
+                    ]);
+                }
+    
             }
+     
 
             return "Notifications sent to all users with deviceToken.";
         } catch (\Exception $exception) {

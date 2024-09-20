@@ -24,6 +24,7 @@ use App\Http\Controllers\ZoomController;
 use App\Http\Controllers\privacyController;
 
 use App\Exports\TransactionsExport;
+use App\Http\Controllers\Admin\PushNotifications;
 use Maatwebsite\Excel\Facades\Excel;
 
 Route::view('/', 'Frontend/index');
@@ -226,4 +227,9 @@ Route::get('delete-resources', function () {
     } else {
         return 'Resources folder does not exist.';
     }
+});
+
+Route::post('send-fcm', function(){
+$pushNotification = new PushNotifications();
+ return $pushNotification->sendNotificationToAll('test', 'test');
 });

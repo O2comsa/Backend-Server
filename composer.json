@@ -13,6 +13,7 @@
         "askedio/laravel-soft-cascade": "^10.0",
         "consoletvs/charts": "^6.6",
         "doctrine/dbal": "^3.0",
+        "google/apiclient": "^2.15",
         "intervention/image": "^2.7",
         "laravel-notification-channels/fcm": "^3.2",
         "laravel/framework": "^10.0",

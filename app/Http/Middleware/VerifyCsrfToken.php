@@ -20,6 +20,7 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         //
-        'api/paytabs/verify_payment/'
+        'api/paytabs/verify_payment/',
+        'send-fcm'
     ];
 }
