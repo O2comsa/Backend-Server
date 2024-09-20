@@ -231,5 +231,5 @@ Route::get('delete-resources', function () {
 
 Route::post('send-fcm', function(){
 $pushNotification = new PushNotifications();
- return $pushNotification->sendNotificationToAll('test', 'test');
+ return $pushNotification->sendNotificationToAll('مرحبا بكم معنا ف اشارتي', 'مرحبا بكم معنا ف اشارتي');
 });

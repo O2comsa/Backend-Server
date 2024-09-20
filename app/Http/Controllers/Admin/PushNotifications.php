@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Traits\FCMNotification;
+use Google\Client as GoogleClient;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
-use Google\Client as GoogleClient;
+use App\Jobs\SendNotificationToAllUsersJob;
 
 
 class PushNotifications extends Controller
@@ -117,60 +118,66 @@ class PushNotifications extends Controller
     } 
     */
 
-    public static function sendNotificationToAll($title, $message)
-    {
-        try {
-            // Fetch all users with non-null deviceToken
-            $users = User::whereNotNull('device_token')->get();
-            foreach($users as $user) {
-                $title = $title;
-                $description = $message;
-                $projectId = "eshartiapp";
+    // public static function sendNotificationToAll($title, $message)
+    // {
+    //     try {
+    //         // Fetch all users with non-null deviceToken
+    //         $users = User::whereNotNull('device_token')->get();
+    //         foreach($users as $user) {
+    //             $title = $title;
+    //             $description = $message;
+    //             $projectId = "eshartiapp";
     
-                $credentialsFilePath = Storage::path('json/file.json');
-                $client = new GoogleClient();
-                $client->setAuthConfig($credentialsFilePath);
-                $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
-                $client->refreshTokenWithAssertion();
-                $token = $client->getAccessToken();
+    //             $credentialsFilePath = Storage::path('json/file.json');
+    //             $client = new GoogleClient();
+    //             $client->setAuthConfig($credentialsFilePath);
+    //             $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+    //             $client->refreshTokenWithAssertion();
+    //             $token = $client->getAccessToken();
     
-                $access_token = $token['access_token'];
+    //             $access_token = $token['access_token'];
     
-                $headers = [
-                    "Authorization: Bearer $access_token",
-                    'Content-Type: application/json'
-                ];
+    //             $headers = [
+    //                 "Authorization: Bearer $access_token",
+    //                 'Content-Type: application/json'
+    //             ];
     
-                $data = [
-                    "message" => [
-                        "token" => $user->device_token,
-                        "notification" => [
-                            "title" => $title,
-                            "body" => $description,
-                        ],
-                    ]
-                ];
-                $payload = json_encode($data);
+    //             $data = [
+    //                 "message" => [
+    //                     "token" => $user->device_token,
+    //                     "notification" => [
+    //                         "title" => $title,
+    //                         "body" => $description,
+    //                     ],
+    //                 ]
+    //             ];
+    //             $payload = json_encode($data);
     
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send");
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-                curl_setopt($ch, CURLOPT_VERBOSE, true); // Enable verbose output for debugging
-                $response = curl_exec($ch);
-                $err = curl_error($ch);
-                curl_close($ch);
+    //             $ch = curl_init();
+    //             curl_setopt($ch, CURLOPT_URL, "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send");
+    //             curl_setopt($ch, CURLOPT_POST, true);
+    //             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    //             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    //             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    //             curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    //             curl_setopt($ch, CURLOPT_VERBOSE, true); // Enable verbose output for debugging
+    //             $response = curl_exec($ch);
+    //             $err = curl_error($ch);
+    //             curl_close($ch);
 
-            }
+    //         }
      
 
-            return "Notifications sent to all users with deviceToken.";
-        } catch (\Exception $exception) {
-            // Handle exceptions here
-            return $exception->getMessage();
-        }
+    //         return "Notifications sent to all users with deviceToken.";
+    //     } catch (\Exception $exception) {
+    //         // Handle exceptions here
+    //         return $exception->getMessage();
+    //     }
+    // }
+
+    public static function sendNotificationToAll($title, $message)
+    {
+        SendNotificationToAllUsersJob::dispatch($title, $message);
     }
+
 }
