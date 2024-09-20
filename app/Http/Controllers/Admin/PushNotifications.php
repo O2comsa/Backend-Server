@@ -163,18 +163,7 @@ class PushNotifications extends Controller
                 $response = curl_exec($ch);
                 $err = curl_error($ch);
                 curl_close($ch);
-    
-                if ($err) {
-                    return response()->json([
-                        'message' => 'Curl Error: ' . $err
-                    ], 500);
-                } else {
-                    return response()->json([
-                        'message' => 'Notification has been sent',
-                        'response' => json_decode($response, true)
-                    ]);
-                }
-    
+
             }
      
 
