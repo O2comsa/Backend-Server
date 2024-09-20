@@ -26,7 +26,6 @@ class PushNotifications extends Controller
 
     public function store(Request $request)
     {
-        dd('fdslkjfsd');
         PushNotifications::sendNotificationToAll($request->title, $request->message);
         return back()->withSuccess(trans('app.message_sended'));
     }
@@ -118,7 +117,7 @@ class PushNotifications extends Controller
     } 
     */
 
-    public  function sendNotificationToAll($title, $message)
+    public static function sendNotificationToAll($title, $message)
     {
         try {
             // Fetch all users with non-null deviceToken
