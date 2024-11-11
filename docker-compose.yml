@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  esharti:
+    build: .
+    container_name: esharti
+    volumes:
+      - /Users/abanoubtalaat/projects/MyProjects/Backend-Server:/var/www/html
+      - ./custom.ini:/usr/local/etc/php/conf.d/custom.ini
+    env_file:
+      - .env 
+
+  db:
+    image: mysql:latest
+    restart: always
+    volumes:
+      - mysql-db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_USER: root
+      MYSQL_ROOT_PASSWORD: new_password
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - /Users/abanoubtalaat/projects/MyProjects/Backend-Server:/var/www/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - esharti
+
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: db  # Ensure phpmyadmin connects to the 'db' service
+
+volumes:
+  mysql-db:

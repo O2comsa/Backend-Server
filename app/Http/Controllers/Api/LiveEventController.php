@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Log;
 use Spatie\FlareClient\Api;
 use Termwind\Components\Li;
 use App\Notifications\SuccessfullyBuyEvent;
+use Illuminate\Support\Facades\DB;
+
 
 class LiveEventController extends Controller
 {
@@ -50,84 +52,77 @@ class LiveEventController extends Controller
 
     public function buyEvent(Request $request)
     {
-        
+        // Validate request inputs
         ApiHelper::validate($request, [
             'liveEvent_id' => "required|exists:live_events,id",
         ]);
 
-        $liveEvent = LiveEvent::query()->findOrFail($request->get('liveEvent_id'));
-        
-        if($liveEvent->number_of_seats){
-            
-
-            if($liveEvent->number_of_seats <= $liveEvent->usersAttendee()->count()){
-                
-                return;
-                return ApiHelper::output( 'لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
-            }    
-        }
-        // edit now $argv
-
-        if (!$liveEvent->is_paid || empty($liveEvent->price)) {
-            $liveEvent->usersAttendee()->syncWithoutDetaching($request->get('user_id'));
-
-            auth('api')->user()->notify(new SuccessfullySubscriptionLiveEventNotification($liveEvent));
-            $user = User::find($request->get('user_id'));
-            $user->notify(new SuccessfullyBuyEvent($liveEvent));
-            $serve = new ZoomService();
-
-            $serve->addMeetingRegistrant($liveEvent->meeting->meeting_id, [
-                'first_name' => auth('api')->user()->name,
-                'last_name' => ' User',
-                'email' => auth('api')->user()->email
-            ], $request->get('user_id'));
-
-            return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
-        }
-
+        // Fetch user and event ID from request
         $user = User::find($request->get('user_id'));
+        $liveEventId = $request->get('liveEvent_id');
 
-        $dateTime = time();
+        return DB::transaction(function () use ($liveEventId, $user, $request) {
+            // Lock the event row for update to prevent simultaneous purchases
+            $liveEvent = LiveEvent::query()->where('id', $liveEventId)->lockForUpdate()->firstOrFail();
 
-        $result = $this->paytabService->create_pay_page([
-            "cart_description" => "اشتراك ندوة : {$liveEvent->name}",
-            "cart_id" => "{$user->id}-liveEvent-{$request->get('liveEvent_id')}-{$dateTime}",
-            "cart_amount" => $liveEvent->price,
-            'customer_details' => [
-                "name" => $user->name,
-                "email" => $user->email,
-                "ip" => $_SERVER['REMOTE_ADDR']
-            ]
-        ]);
-
-        
-
-        if ($result->success) {
-
-            if (isset($result->responseResult)) {
-                $result->responseResult->payment_url = $result->responseResult->redirect_url;
+            // Check seat availability if limited
+            if ($liveEvent->number_of_seats && $liveEvent->number_of_seats <= $liveEvent->usersAttendee()->count()) {
+                return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }
 
-          $paytab =   \App\Models\Paytabs::query()
-                ->create([
-                    'payment_reference' => $result->responseResult->tran_ref,
-                    'user_id' => $request->get('user_id'),
+            // Handle free events
+            if (!$liveEvent->is_paid || empty($liveEvent->price)) {
+                // Add user to event attendees without detaching others
+                $liveEvent->usersAttendee()->syncWithoutDetaching($user->id);
+
+                // Send notifications
+                $user->notify(new SuccessfullySubscriptionLiveEventNotification($liveEvent));
+                $user->notify(new SuccessfullyBuyEvent($liveEvent));
+
+                // Register for Zoom meeting if applicable
+                $zoomService = new ZoomService();
+                $zoomService->addMeetingRegistrant($liveEvent->meeting->meeting_id, [
+                    'first_name' => $user->name,
+                    'last_name' => 'User',
+                    'email' => $user->email,
+                ], $user->id);
+
+                return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
+            }
+
+            // Handle paid events
+            $dateTime = time();
+            $paymentPageResult = $this->paytabService->create_pay_page([
+                "cart_description" => "اشتراك ندوة : {$liveEvent->name}",
+                "cart_id" => "{$user->id}-liveEvent-{$liveEventId}-{$dateTime}",
+                "cart_amount" => $liveEvent->price,
+                'customer_details' => [
+                    "name" => $user->name,
+                    "email" => $user->email,
+                    "ip" => $_SERVER['REMOTE_ADDR'],
+                ],
+            ]);
+
+            // Check if payment page creation was successful
+            if ($paymentPageResult->success) {
+                if (isset($paymentPageResult->responseResult)) {
+                    $paymentPageResult->responseResult->payment_url = $paymentPageResult->responseResult->redirect_url;
+                }
+
+                // Store payment details in the database
+                $paytab = \App\Models\Paytabs::query()->create([
+                    'payment_reference' => $paymentPageResult->responseResult->tran_ref,
+                    'user_id' => $user->id,
                     'related_id' => $liveEvent->id,
-                    'create_response' => $result,
-                    'related_type' => LiveEvent::class
+                    'create_response' => $paymentPageResult,
+                    'related_type' => LiveEvent::class,
                 ]);
 
-                if($paytab){
-                    if($paytab->verify_payment_response){
-                        // $user->notify(new SuccessfullyBuyEvent($liveEvent));
-                    }
-                    
-                }
-              
-                
-            return ApiHelper::output($result);
-        } else {
-            return ApiHelper::output($result->errors, 0);
-        }
+                return ApiHelper::output($paymentPageResult);
+            } else {
+                // Return error response if payment page creation failed
+                return ApiHelper::output($paymentPageResult->errors, 0);
+            }
+        });
     }
 }
