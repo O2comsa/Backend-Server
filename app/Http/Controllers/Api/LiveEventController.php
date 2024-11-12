@@ -98,6 +98,7 @@ class LiveEventController extends Controller
                     'balance' => 0,
                     'note' => 'القاموس مجاني',
                 ]);
+                
                 return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
             }
 
