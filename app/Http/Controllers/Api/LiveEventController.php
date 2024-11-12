@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\ApiHelper;
-use App\Http\Controllers\Controller;
-use App\Models\LiveEvent;
 use App\Models\User;
-use App\Notifications\SuccessfullySubscriptionLiveEventNotification;
-use App\Services\Paytabs\PaytabService;
-use App\Services\Zoom\ZoomService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use App\Models\LiveEvent;
+use App\Helpers\ApiHelper;
+use App\Models\Transaction;
 use Spatie\FlareClient\Api;
 use Termwind\Components\Li;
-use App\Notifications\SuccessfullyBuyEvent;
+use Illuminate\Http\Request;
+use App\Services\Zoom\ZoomService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Services\Paytabs\PaytabService;
+use App\Notifications\SuccessfullyBuyEvent;
+use App\Notifications\SuccessfullySubscriptionLiveEventNotification;
 
 
 class LiveEventController extends Controller
@@ -67,6 +68,7 @@ class LiveEventController extends Controller
 
             // Check seat availability if limited
             if ($liveEvent->number_of_seats && $liveEvent->number_of_seats <= $liveEvent->usersAttendee()->count()) {
+                return;
                 return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }
 
@@ -87,6 +89,15 @@ class LiveEventController extends Controller
                     'email' => $user->email,
                 ], $user->id);
 
+
+                Transaction::create([
+                    'user_id' => $user->id,
+                    'in' => 1,
+                    'out' => 0,
+                    'order_id' => 0,
+                    'balance' => 0,
+                    'note' => 'القاموس مجاني',
+                ]);
                 return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
             }
 
