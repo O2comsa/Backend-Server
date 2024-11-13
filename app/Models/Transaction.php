@@ -11,7 +11,7 @@ class Transaction extends Model
     use SoftDeletes;
 
     protected $table = 'transactions';
-    protected $fillable = ['user_id', 'balance', 'in', 'out', 'note'];
+    protected $fillable = ['user_id', 'balance', 'in', 'out', 'note', 'is_free'];
     protected $dates = ['deleted_at'];
     protected $hidden = ['deleted_at'];
 

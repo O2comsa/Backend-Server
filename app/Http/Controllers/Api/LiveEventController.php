@@ -61,6 +61,23 @@ class LiveEventController extends Controller
         // Fetch user and event ID from request
         $user = User::find($request->get('user_id'));
         $liveEventId = $request->get('liveEvent_id');
+        $eventRow = LiveEvent::find($liveEventId);
+        if (!$eventRow->is_paid || empty($eventRow->price)) {
+            // Check seat availability if limited
+            if ($eventRow->number_of_seats && $eventRow->number_of_seats <= $eventRow->usersAttendee()->count()) {
+                return;
+                return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
+            }
+            Transaction::create([
+                'user_id' => $user->id,
+                'in' => 0,
+                'out' => 0,
+                'order_id' => 0,
+                'balance' => 0,
+                'note' => 'القاموس مجاني',
+                'is_free' => 1,
+            ]);
+        }
 
         return DB::transaction(function () use ($liveEventId, $user, $request) {
             // Lock the event row for update to prevent simultaneous purchases
@@ -89,16 +106,6 @@ class LiveEventController extends Controller
                     'email' => $user->email,
                 ], $user->id);
 
-
-                Transaction::create([
-                    'user_id' => $user->id,
-                    'in' => 1,
-                    'out' => 0,
-                    'order_id' => 0,
-                    'balance' => 0,
-                    'note' => 'القاموس مجاني',
-                ]);
-                
                 return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
             }
 

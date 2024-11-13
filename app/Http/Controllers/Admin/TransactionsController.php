@@ -33,7 +33,7 @@ class TransactionsController extends Controller
     {
         $from = $request->from_date;
         $to = $request->to_date;
-        $transaction = Transaction::query()->where('in', '>', 0);
+        $transaction = Transaction::query()->where('in', '>', 0)->orWhere('is_free',1);
 
         if (isset($from) && $from != 'all' && isset($to) && $to != 'all') {
             $transaction = $transaction->whereBetween('created_at', [$from, $to]);
