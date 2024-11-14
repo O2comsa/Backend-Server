@@ -35,23 +35,36 @@ class LiveSupportRequestController extends Controller
         return view('Admin.live-support-request.list');
     }
 
-    public function getLiveSupportRequest()
+    public function getLiveSupportRequest(Request $request)
     {
-        return Datatables::of(LiveSupportRequest::latest())
+        $liveSupportRequests = LiveSupportRequest::latest();
+
+        if (!empty($request->search['value'])) {
+            $keyword = $request->search['value'];
+
+            // Apply search filters for related columns
+            $liveSupportRequests = $liveSupportRequests->whereHas('user', function ($query) use ($keyword) {
+                $query->where('name', 'like', "%{$keyword}%");
+            })->orWhereHas('admin', function ($query) use ($keyword) {
+                $query->where('name', 'like', "%{$keyword}%");
+            })->orWhere('status', 'like', "%{$keyword}%");
+        }
+
+        return DataTables::of($liveSupportRequests)
             ->addIndexColumn()
             ->addColumn('action', function ($liveSupportRequest) {
                 $action = '';
                 if (\Auth::user()->hasPermission('live-support-request.edit')) {
                     $action = '<a href="' . route('live-support-request.edit', $liveSupportRequest->id) . '" class="btn btn-icon edit" title="' . trans('app.edit') . '" data-toggle="tooltip" data-placement="top"> <i class="fas fa-edit"></i></a>';
                 }
-//                if (\Auth::user()->hasPermission('live-support-request.delete')) {
-//                    $action = $action . '<button type="button" id="Delete" data-id="' . $liveSupportRequest->id . '" class="js-swal-confirm btn btn-light push mb-md-0" data-confirm-title="' . trans('app.delete') . '" data-confirm-text="' . trans('app.delete') . '" data-confirm-delete="' . trans('app.delete') . '" title="' . trans('app.delete') . '" data-toggle="tooltip" data-placement="top"><i class="fa fa-trash"></i></button>';;
-//                }
+                // Uncomment if delete permission is needed
+                // if (\Auth::user()->hasPermission('live-support-request.delete')) {
+                //     $action .= '<button type="button" id="Delete" data-id="' . $liveSupportRequest->id . '" class="js-swal-confirm btn btn-light push mb-md-0" data-confirm-title="' . trans('app.delete') . '" data-confirm-text="' . trans('app.delete') . '" data-confirm-delete="' . trans('app.delete') . '" title="' . trans('app.delete') . '" data-toggle="tooltip" data-placement="top"><i class="fa fa-trash"></i></button>';
+                // }
                 return $action;
             })
             ->addColumn('user_name', function ($liveSupportRequest) {
                 $link = route('users.edit', $liveSupportRequest->user_id);
-
                 return "<a href='{$link}'>{$liveSupportRequest->user->name}</a>";
             })
             ->addColumn('admin_name', function ($liveSupportRequest) {
@@ -66,9 +79,10 @@ class LiveSupportRequestController extends Controller
             ->addColumn('updated_at', function ($liveSupportRequest) {
                 return $liveSupportRequest->updated_at->diffForHumans();
             })
-            ->rawColumns(['action', 'created_at', 'updated_at', 'user_name', 'admin_name'])
+            ->rawColumns(['action', 'user_name', 'admin_name'])
             ->make(true);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -179,7 +193,7 @@ class LiveSupportRequestController extends Controller
                 $serve->addMeetingRegistrant($meeting['data']->meeting_id, [
                     'first_name' => auth('admin')->user()->name,
                     'last_name' => ' Admin',
-                    'email' => 'tariq.ayman94@gmail.com'//auth('admin')->user()->email
+                    'email' => 'tariq.ayman94@gmail.com' //auth('admin')->user()->email
                 ], auth('admin')->user()->id);
 
                 $serve->addMeetingRegistrant($meeting['data']->meeting_id, [

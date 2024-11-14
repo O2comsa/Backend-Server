@@ -29,43 +29,65 @@ class TransactionsController extends Controller
         return view('Admin.transaction.index');
     }
 
-    public function getTransactions(Request $request, $from = null, $to = null)
+    public function getTransactions(Request $request)
     {
         $from = $request->from_date;
         $to = $request->to_date;
-        $transaction = Transaction::query()->where('in', '>', 0)->orWhere('is_free',1);
 
+        // Base query for transactions with initial conditions
+        $transaction = Transaction::query()
+            ->where(function ($query) {
+                $query->where('in', '>', 0)
+                    ->orWhere('is_free', 1);
+            })
+            ->whereHas('user') // Ensure the transaction has an associated user
+            ->with('user')
+            ->latest();
+
+        // Apply date range filter
         if (isset($from) && $from != 'all' && isset($to) && $to != 'all') {
             $transaction = $transaction->whereBetween('created_at', [$from, $to]);
         } else {
             if (isset($from) && $from != 'all') {
-                $transaction = $transaction->whereDate('created_at', '<=', $from);
+                $transaction = $transaction->whereDate('created_at', '>=', $from);
             }
             if (isset($to) && $to != 'all') {
-                $transaction = $transaction->whereDate('created_at', '>=', $to);
+                $transaction = $transaction->whereDate('created_at', '<=', $to);
             }
         }
 
-        $transaction = $transaction->whereHas('user')->with('user')->latest();
+        // Apply search filter specifically on user's email if a search value is provided
+        if (!empty($request->search['value'])) {
+            $keyword = $request->search['value'];
+            $transaction = $transaction->whereHas('user', function ($query) use ($keyword) {
+                $query->where('email', 'like', "%{$keyword}%")
+                ->orWhere('name', 'like', "%{$keyword}%");
+            });
+        }
 
+        // Return the DataTable instance without global search on non-existent columns
         return DataTables::of($transaction)
             ->addIndexColumn()
             ->editColumn('user', function ($transaction) {
                 return $transaction->user->name;
             })
-            ->addColumn('national_id', function ($transaction) { // Add this line
-                return $transaction->user->national_id; // Add this line
+            ->addColumn('national_id', function ($transaction) {
+                return $transaction->user->national_id;
             })
-            ->addColumn('updated_at', function ($transaction) { // Add this line
-                return Carbon::parse($transaction->updated_at)->format('Y-m-d H:i'); // Add this line
+            ->addColumn('updated_at', function ($transaction) {
+                return Carbon::parse($transaction->updated_at)->format('Y-m-d H:i');
             })
             ->filterColumn('user', function ($query, $keyword) {
-                $query->whereHas('user', function ($query) use ($keyword) {
-                    $query->where('name', 'like', "%{$keyword}%");
+                // Ensure search on 'user' column only applies to the 'email' attribute
+                $query->whereHas('user', function ($q) use ($keyword) {
+                    $q->where('email', 'like', "%{$keyword}%");
                 });
             })
+            ->rawColumns(['user']) // Allow raw HTML for user column if needed
             ->make(true);
     }
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -106,7 +128,6 @@ class TransactionsController extends Controller
                 'balance' => User::find($request->user_id)->wallet + $request->value,
                 'note' => 'ايداع بواسطة المشرف',
             ]);
-
         } elseif ($request->type == 'out') {
 
             Transaction::create([
@@ -120,5 +141,4 @@ class TransactionsController extends Controller
         }
         return redirect()->route('transactions.index')->withSuccess(trans('app.success'));
     }
-
 }

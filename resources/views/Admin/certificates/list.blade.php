@@ -66,7 +66,7 @@
                 columns: [
                     {data: 'DT_RowIndex', orderable: false, searchable: false},
                     {data: 'user', name: 'user'},
-                    {data: 'type', name: 'type'},
+                    {data: 'type', name: 'related_type'},
                     {data: 'file_pdf', name: 'file_pdf'},
                     {data: 'image', name: 'image'},
                     {data: 'created_at', name: 'created_at', orderable: false,},

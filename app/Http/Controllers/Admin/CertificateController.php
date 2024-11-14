@@ -36,41 +36,51 @@ class CertificateController extends Controller
      */
     public function index()
     {
+        
         return view('Admin.certificates.list');
     }
 
     public function getCertificates()
-    {
-        return Datatables::of(Certificate::latest())
-            ->addIndexColumn()
-            ->addColumn('action', function ($certificate) {
-                $action = '';
-                if (\Auth::user()->hasPermission('certificates.edit')) {
-                    $action = '<a href="' . route('certificates.edit', $certificate->id) . '" class="btn btn-icon edit" title="' . trans('app.edit') . '" data-toggle="tooltip" data-placement="top"> <i class="fas fa-edit"></i></a>';
-                }
-                if (\Auth::user()->hasPermission('certificates.delete')) {
-                    $action = $action . '<button type="button" id="Delete" data-id="' . $certificate->id . '" class="js-swal-confirm btn btn-light push mb-md-0" data-confirm-title="' . trans('app.delete') . '" data-confirm-text="' . trans('app.delete') . '" data-confirm-delete="' . trans('app.delete') . '" title="' . trans('app.delete') . '" data-toggle="tooltip" data-placement="top"><i class="fa fa-trash"></i></button>';;
-                }
-                return $action;
-            })
-            ->addColumn('user', function ($certificate) {
-                return $certificate->user?->email;
-            })
-            ->addColumn('file_pdf', function ($certificate) {
-                return '<a href="' . $certificate->file_pdf . '">حمل من هنا</a>';
-            })
-            ->addColumn('image', function ($certificate) {
-                return '<a href="' . $certificate->image . '">حمل من هنا</a>';
-            })
-            ->addColumn('created_at', function ($certificate) {
-                return $certificate->created_at->diffForHumans();
-            })
-            ->addColumn('updated_at', function ($certificate) {
-                return $certificate->updated_at->diffForHumans();
-            })
-            ->rawColumns(['action', 'created_at', 'updated_at', 'file_pdf','image'])
-            ->make(true);
-    }
+{
+    // Modify the query to include the user relationship
+    $query = Certificate::with('user')->latest();
+
+    return Datatables::of($query)
+        ->addIndexColumn()
+        ->addColumn('action', function ($certificate) {
+            $action = '';
+            if (\Auth::user()->hasPermission('certificates.edit')) {
+                $action = '<a href="' . route('certificates.edit', $certificate->id) . '" class="btn btn-icon edit" title="' . trans('app.edit') . '" data-toggle="tooltip" data-placement="top"> <i class="fas fa-edit"></i></a>';
+            }
+            if (\Auth::user()->hasPermission('certificates.delete')) {
+                $action .= '<button type="button" id="Delete" data-id="' . $certificate->id . '" class="js-swal-confirm btn btn-light push mb-md-0" data-confirm-title="' . trans('app.delete') . '" data-confirm-text="' . trans('app.delete') . '" data-confirm-delete="' . trans('app.delete') . '" title="' . trans('app.delete') . '" data-toggle="tooltip" data-placement="top"><i class="fa fa-trash"></i></button>';
+            }
+            return $action;
+        })
+        ->addColumn('user', function ($certificate) {
+            return $certificate->user?->email;
+        })
+        ->addColumn('file_pdf', function ($certificate) {
+            return '<a href="' . $certificate->file_pdf . '">حمل من هنا</a>';
+        })
+        ->addColumn('image', function ($certificate) {
+            return '<a href="' . $certificate->image . '">حمل من هنا</a>';
+        })
+        ->addColumn('created_at', function ($certificate) {
+            return $certificate->created_at->diffForHumans();
+        })
+        ->addColumn('updated_at', function ($certificate) {
+            return $certificate->updated_at->diffForHumans();
+        })
+        ->filterColumn('user', function ($query, $keyword) {
+            $query->whereHas('user', function ($q) use ($keyword) {
+                $q->where('email', 'like', "%{$keyword}%");
+            });
+        })
+        ->rawColumns(['action', 'file_pdf', 'image', 'created_at', 'updated_at'])
+        ->make(true);
+}
+
 
     /**
      * Show the form for creating a new resource.
