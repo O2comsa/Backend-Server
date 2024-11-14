@@ -12,6 +12,8 @@ class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
     use SoftCascadeTrait;
+    use SoftDeletes;
+
 
     protected $table = 'users';
 

@@ -65,7 +65,7 @@
                     <p class="mb-1">
                         Would you like to let us know about it?
                     </p>
-                    <a class="link-fx" href="mail:info@smart-coder.com">Report it</a> or <a class="link-fx" href="{{route('admin.login')}}">Go Back to Dashboard</a>
+                    <a class="link-fx" href="mail:info@esharti.net">Report it</a> or <a class="link-fx" href="{{route('admin.login')}}">Go Back to Dashboard</a>
                     <!-- END Error Footer -->
                 </div>
             </div>
