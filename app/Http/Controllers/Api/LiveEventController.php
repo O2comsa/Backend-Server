@@ -63,7 +63,7 @@ class LiveEventController extends Controller
         $liveEventId = $request->get('liveEvent_id');
         $eventRow = LiveEvent::find($liveEventId);
 
-        if (!$eventRow->is_paid || empty($eventRow->price)) {
+        if (!$eventRow->is_paid) {
             $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $eventRow->id)->count();
 
             // Check seat availability if limited
@@ -71,6 +71,9 @@ class LiveEventController extends Controller
                 return;
                 return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }
+
+            $eventRow->usersAttendee()->syncWithoutDetaching($user->id);
+
             Transaction::create([
                 'user_id' => $user->id,
                 'in' => 0,
@@ -80,6 +83,21 @@ class LiveEventController extends Controller
                 'note' => 'القاموس مجاني',
                 'is_free' => 1,
             ]);
+
+            // Send notifications
+            $user->notify(new SuccessfullySubscriptionLiveEventNotification($eventRow));
+            $user->notify(new SuccessfullyBuyEvent($eventRow));
+
+            // Register for Zoom meeting if applicable
+            $zoomService = new ZoomService();
+            $zoomService->addMeetingRegistrant($eventRow->meeting->meeting_id, [
+                'first_name' => $user->name,
+                'last_name' => 'User',
+                'email' => $user->email,
+            ], $user->id);
+
+            return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
+            
         }
 
         return DB::transaction(function () use ($liveEventId, $user, $request) {
@@ -92,26 +110,6 @@ class LiveEventController extends Controller
             if ($liveEvent->number_of_seats && $attendeesNumber >= $liveEvent->usersAttendee()->count()) {
                 return;
                 return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
-            }
-
-            // Handle free events
-            if (!$liveEvent->is_paid || empty($liveEvent->price)) {
-                // Add user to event attendees without detaching others
-                $liveEvent->usersAttendee()->syncWithoutDetaching($user->id);
-
-                // Send notifications
-                $user->notify(new SuccessfullySubscriptionLiveEventNotification($liveEvent));
-                $user->notify(new SuccessfullyBuyEvent($liveEvent));
-
-                // Register for Zoom meeting if applicable
-                $zoomService = new ZoomService();
-                $zoomService->addMeetingRegistrant($liveEvent->meeting->meeting_id, [
-                    'first_name' => $user->name,
-                    'last_name' => 'User',
-                    'email' => $user->email,
-                ], $user->id);
-
-                return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
             }
 
             // Handle paid events
