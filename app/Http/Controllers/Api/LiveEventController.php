@@ -62,9 +62,12 @@ class LiveEventController extends Controller
         $user = User::find($request->get('user_id'));
         $liveEventId = $request->get('liveEvent_id');
         $eventRow = LiveEvent::find($liveEventId);
+
         if (!$eventRow->is_paid || empty($eventRow->price)) {
+            $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $eventRow->id)->count();
+
             // Check seat availability if limited
-            if ($eventRow->number_of_seats && $eventRow->number_of_seats <= $eventRow->usersAttendee()->count()) {
+            if ($eventRow->number_of_seats && $attendeesNumber >= $eventRow->number_of_seats) {
                 return;
                 return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }
@@ -81,10 +84,12 @@ class LiveEventController extends Controller
 
         return DB::transaction(function () use ($liveEventId, $user, $request) {
             // Lock the event row for update to prevent simultaneous purchases
-            $liveEvent = LiveEvent::query()->where('id', $liveEventId)->lockForUpdate()->firstOrFail();
+            $liveEvent = LiveEvent::find($liveEventId);
+
+            $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $liveEvent->id)->count();
 
             // Check seat availability if limited
-            if ($liveEvent->number_of_seats && $liveEvent->number_of_seats <= $liveEvent->usersAttendee()->count()) {
+            if ($liveEvent->number_of_seats && $attendeesNumber >= $liveEvent->usersAttendee()->count()) {
                 return;
                 return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }
