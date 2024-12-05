@@ -88,13 +88,13 @@ class LiveEventController extends Controller
             $user->notify(new SuccessfullySubscriptionLiveEventNotification($eventRow));
             $user->notify(new SuccessfullyBuyEvent($eventRow));
 
-            // Register for Zoom meeting if applicable
-            $zoomService = new ZoomService();
-            $zoomService->addMeetingRegistrant($eventRow->meeting->meeting_id, [
-                'first_name' => $user->name,
-                'last_name' => 'User',
-                'email' => $user->email,
-            ], $user->id);
+            // // Register for Zoom meeting if applicable
+            // $zoomService = new ZoomService();
+            // $zoomService->addMeetingRegistrant($eventRow->meeting->meeting_id, [
+            //     'first_name' => $user->name,
+            //     'last_name' => 'User',
+            //     'email' => $user->email,
+            // ], $user->id);
 
             return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
             
