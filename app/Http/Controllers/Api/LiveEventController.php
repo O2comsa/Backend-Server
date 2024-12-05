@@ -88,13 +88,13 @@ class LiveEventController extends Controller
             $user->notify(new SuccessfullySubscriptionLiveEventNotification($eventRow));
             $user->notify(new SuccessfullyBuyEvent($eventRow));
 
-            // // Register for Zoom meeting if applicable
-            // $zoomService = new ZoomService();
-            // $zoomService->addMeetingRegistrant($eventRow->meeting->meeting_id, [
-            //     'first_name' => $user->name,
-            //     'last_name' => 'User',
-            //     'email' => $user->email,
-            // ], $user->id);
+            // Register for Zoom meeting if applicable
+            $zoomService = new ZoomService();
+            $zoomService->addMeetingRegistrant($eventRow->meeting->meeting_id, [
+                'first_name' => $user->name,
+                'last_name' => 'User',
+                'email' => $user->email,
+            ], $user->id);
 
             return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
             
@@ -114,39 +114,37 @@ class LiveEventController extends Controller
 
             // Handle paid events
             $dateTime = time();
-            // $paymentPageResult = $this->paytabService->create_pay_page([
-            //     "cart_description" => "اشتراك ندوة : {$liveEvent->name}",
-            //     "cart_id" => "{$user->id}-liveEvent-{$liveEventId}-{$dateTime}",
-            //     "cart_amount" => $liveEvent->price,
-            //     'customer_details' => [
-            //         "name" => $user->name,
-            //         "email" => $user->email,
-            //         "ip" => $_SERVER['REMOTE_ADDR'],
-            //     ],
-            // ]);
+            $paymentPageResult = $this->paytabService->create_pay_page([
+                "cart_description" => "اشتراك ندوة : {$liveEvent->name}",
+                "cart_id" => "{$user->id}-liveEvent-{$liveEventId}-{$dateTime}",
+                "cart_amount" => $liveEvent->price,
+                'customer_details' => [
+                    "name" => $user->name,
+                    "email" => $user->email,
+                    "ip" => $_SERVER['REMOTE_ADDR'],
+                ],
+            ]);
 
             // Check if payment page creation was successful
-            // if ($paymentPageResult->success) {
-            //     if (isset($paymentPageResult->responseResult)) {
-            //         $paymentPageResult->responseResult->payment_url = $paymentPageResult->responseResult->redirect_url;
-            //     }
+            if ($paymentPageResult->success) {
+                if (isset($paymentPageResult->responseResult)) {
+                    $paymentPageResult->responseResult->payment_url = $paymentPageResult->responseResult->redirect_url;
+                }
 
-            //     // Store payment details in the database
-            //     $paytab = \App\Models\Paytabs::query()->create([
-            //         'payment_reference' => $paymentPageResult->responseResult->tran_ref,
-            //         'user_id' => $user->id,
-            //         'related_id' => $liveEvent->id,
-            //         'create_response' => $paymentPageResult,
-            //         'related_type' => LiveEvent::class,
-            //     ]);
+                // Store payment details in the database
+                $paytab = \App\Models\Paytabs::query()->create([
+                    'payment_reference' => $paymentPageResult->responseResult->tran_ref,
+                    'user_id' => $user->id,
+                    'related_id' => $liveEvent->id,
+                    'create_response' => $paymentPageResult,
+                    'related_type' => LiveEvent::class,
+                ]);
 
-            //     return ApiHelper::output($paymentPageResult);
-            // } else {
-            //     // Return error response if payment page creation failed
-            //     return ApiHelper::output($paymentPageResult->errors, 0);
-            // }
-            return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 1);
-
+                return ApiHelper::output($paymentPageResult);
+            } else {
+                // Return error response if payment page creation failed
+                return ApiHelper::output($paymentPageResult->errors, 0);
+            }
         });
     }
 }
