@@ -68,8 +68,7 @@ class LiveEventController extends Controller
             $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $eventRow->id)->count();
 
             // Check seat availability if limited
-            if ($eventRow->number_of_seats && $attendeesNumber >= $eventRow->number_of_seats) {
-                return;
+            if ( $attendeesNumber >= $eventRow->number_of_seats) {
                 return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }
 
@@ -108,7 +107,7 @@ class LiveEventController extends Controller
         // Check seat availability if limited
         if ($attendeesNumber >= $liveEvent->number_of_seats) {
             Log::info($attendeesNumber, 'number of attendence ');
-            return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 1);
+            return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
         }
 
         // Handle paid events
