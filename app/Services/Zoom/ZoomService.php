@@ -5,15 +5,16 @@ declare(strict_types=1);
 
 namespace App\Services\Zoom;
 
-use App\Models\Meeting;
-use App\Models\ZoomAccountsAccess;
-use App\Models\ZoomMeeting;
-use App\Models\ZoomRegistrant;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use App\Models\Meeting;
+use App\Models\ZoomMeeting;
+use Illuminate\Support\Arr;
+use App\Models\ZoomRegistrant;
+use App\Models\ZoomAccountsAccess;
+use Illuminate\Support\Facades\File;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Support\Facades\File;
 
 class ZoomService
 {
@@ -124,12 +125,13 @@ class ZoomService
 
         $response = $client->request('POST', "https://zoom.us/oauth/token", [
             'form_params' => [
-                'grant_type' => 'account_credentials',
+                'grant_type' => 'client_credentials',
                 'account_id' => $this->account_id,
             ],
         ]);
 
         $responseBody = json_decode($response->getBody()->getContents(), true);
+
         return $responseBody['access_token'];
     }
 
@@ -162,13 +164,14 @@ class ZoomService
 
         $response = $client->request('POST', "https://api.zoom.us/oauth/token", [
             'form_params' => [
-                "grant_type" => "refresh_token",
+                "grant_type" => "client_credentials",
                 "refresh_token" => $refresh_token ?? $this->credential_data['refresh_token']
             ],
         ]);
 
         $responseBody = json_decode($response->getBody()->getContents(), true);
 
+        $responseBody = Arr::except($responseBody, ['api_url']);
         ZoomAccountsAccess::query()
             ->where('refresh_token', $refresh_token ?? $this->credential_data['refresh_token'])
             ->update($responseBody + ['expires_date' => Carbon::now()->addSeconds($responseBody['expires_in'])]);
@@ -199,7 +202,7 @@ class ZoomService
     public function createMeeting(array $data, $related = null, $trying = 0): array
     {
         $data = $this->mapBeforeCreateMeeting($data);
-
+        $this->getAccessToken();
         try {
             $response = $this->client->request('POST', 'users/me/meetings', [
                 'json' => $data,

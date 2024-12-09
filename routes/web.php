@@ -13,16 +13,18 @@
 
 // Main Landing Routes
 use App\Models\Admin;
+use App\Models\LiveEvent;
+use App\Services\Zoom\ZoomService;
 use App\Exports\TransactionsExport;
 use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\Facades\Excel;
+
 use App\Http\Controllers\ZoomController;
+
 use App\Http\Controllers\privacyController;
 
 use App\Http\Controllers\Admin\PushNotifications;
-
 use App\Http\Controllers\Zoom\ZoomMeetingController;
-
 use App\Http\Controllers\Zoom\ZoomSettingController;
 use App\Http\Controllers\Zoom\ZoomWebhookController;
 use App\Http\Controllers\Zoom\ZoomCategoryController;
@@ -233,4 +235,15 @@ Route::get('delete-resources', function () {
 Route::post('send-fcm', function(){
 $pushNotification = new PushNotifications();
  return $pushNotification->sendNotificationToAll('مرحبا بكم معنا ف اشارتي', 'مرحبا بكم معنا ف اشارتي');
+});
+
+Route::get('zoom', function (){
+    $zoomService = new ZoomService();
+    $eventRow = LiveEvent::find(3);
+    return $zoomService->addMeetingRegistrant($eventRow->meeting->meeting_id, [
+        'first_name' => 'sfs',
+        'last_name' => 'User',
+        'email' => 'abanoubtalaat555@gmail.com',
+    ], 5);
+
 });
