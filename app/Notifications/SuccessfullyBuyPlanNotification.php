@@ -29,7 +29,7 @@ class SuccessfullyBuyPlanNotification extends Notification implements ShouldQueu
     public function __construct(protected Plan $plan)
     {
         $this->title = 'تم الاشتراك في الباقة';
-        $this->body = "تم الاشتراك في الباقة {$this->plan->name}";
+        $this->body = "تم الاشتراك في  {$this->plan->name}";
         $this->data = [
             'title' => $this->title,
             'body' => $this->body,

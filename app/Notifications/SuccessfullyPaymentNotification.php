@@ -69,7 +69,7 @@ class SuccessfullyPaymentNotification extends Notification implements ShouldQueu
                 ];
             } else if ($this->paytabs->related instanceof Plan) {
                 $this->title = 'تم اتمام عملية شراء الباقة بنجاح';
-                $this->body = "تم اتمام شراء دورة {$this->paytabs->related->name}";
+                $this->body = "تم اتمام شراء  {$this->paytabs->related->name}";
                 $this->data = [
                     'title' => $this->title,
                     'body' => $this->body,
