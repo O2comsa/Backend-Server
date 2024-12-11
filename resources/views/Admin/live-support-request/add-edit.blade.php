@@ -105,7 +105,7 @@
                     </div>
 
                     <div class="col-lg-4 border rounded p-1">
-                        <label for="admin_name">@lang('app.zoom_info')</label>
+                        <label class="mb-2" for="admin_name">@lang('app.zoom_info')</label>
                         <br>
                         @if( in_array($liveSupportRequest->status,[\App\Helpers\LiveSupportRequestStatus::ACCEPTED_STATUS,\App\Helpers\LiveSupportRequestStatus::WAITING_STATUS,\App\Helpers\LiveSupportRequestStatus::IN_PROGRESS_STATUS]) && $liveSupportRequest->meeting)
                             <div class="form-check ">
