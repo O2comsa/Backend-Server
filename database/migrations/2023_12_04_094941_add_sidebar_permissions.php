@@ -16,10 +16,10 @@ return new class extends Migration {
         Permission::query()->createOrFirst(['name' => 'certificates.edit',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'تعديل شهادة']);
         Permission::query()->createOrFirst(['name' => 'certificates.delete',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'حذف شهادة']);
 
-        Permission::query()->createOrFirst(['name' => 'live-event.manage',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'عرض ندوة مباشرة']);
-        Permission::query()->createOrFirst(['name' => 'live-event.add',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'اضافة ندوة مباشرة']);
-        Permission::query()->createOrFirst(['name' => 'live-event.edit',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'تعديل ندوة مباشرة']);
-        Permission::query()->createOrFirst(['name' => 'live-event.delete',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'حذف ندوة مباشرة']);
+        Permission::query()->createOrFirst(['name' => 'live-event.manage',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'عرض دورة مباشرة']);
+        Permission::query()->createOrFirst(['name' => 'live-event.add',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'اضافة دورة مباشرة']);
+        Permission::query()->createOrFirst(['name' => 'live-event.edit',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'تعديل دورة مباشرة']);
+        Permission::query()->createOrFirst(['name' => 'live-event.delete',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'حذف دورة مباشرة']);
 
         Permission::query()->createOrFirst(['name' => 'plans.manage',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'عرض باقة الدعم الفني']);
         Permission::query()->createOrFirst(['name' => 'plans.add',], ['id' => (Permission::all()->max('id') + 1), 'display_name' => 'اضافة باقة الدعم الفني']);

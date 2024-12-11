@@ -427,7 +427,7 @@ return [
 
     'national_id'=>'National Id',
     'zoom_info'=>'Zoom Info',
-    ''=>'',
-    ''=>'',
+    'start_zoom_meetting'=>'Start zoom meeting',
+    'join_zoom_meetting'=>'Join zoom meeting',
 ];
     

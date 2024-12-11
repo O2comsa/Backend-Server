@@ -48,7 +48,7 @@ class SuccessfullyPaymentNotification extends Notification implements ShouldQueu
                     'related_id' => "{$this->paytabs->related_id}"
                 ];
             } elseif ($this->paytabs->related instanceof LiveEvent) {
-                $this->title = 'تم اتمام عملية شراء الندوة المباشرة بنجاح';
+                $this->title = 'تم اتمام عملية شراء الدورة المباشرة بنجاح';
                 $this->body = "تم اتمام شراء دورة {$this->paytabs->related->name}";
                 $this->data = [
                     'title' => $this->title,

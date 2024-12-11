@@ -39,12 +39,12 @@
             </div>
             <div class="block-content block-content-full">
                 <div class="row">
-                    <div class="col-lg-2">
+                    {{-- <div class="col-lg-2">
                         <p class="font-size-sm text-muted">
                             @lang('app.info_live_support_request')
                         </p>
-                    </div>
-                    <div class="col-lg-6">
+                    </div> --}}
+                    <div class="col-lg-8 border p-1">
                         <div class="row">
                             @if($edit)
                                 <input hidden name="liveSupportRequest" value="{{$liveSupportRequest->id}}">
@@ -104,16 +104,17 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-4">
+                    <div class="col-lg-4 border rounded p-1">
                         <label for="admin_name">@lang('app.zoom_info')</label>
+                        <br>
                         @if( in_array($liveSupportRequest->status,[\App\Helpers\LiveSupportRequestStatus::ACCEPTED_STATUS,\App\Helpers\LiveSupportRequestStatus::WAITING_STATUS,\App\Helpers\LiveSupportRequestStatus::IN_PROGRESS_STATUS]) && $liveSupportRequest->meeting)
                             <div class="form-check form-check-inline">
-                                <a class="form-check-label" href="{{ $liveSupportRequest->meeting->start_url }}">Start
-                                    Zoom Link</a>
+                                <a class="form-check-label" href="{{ $liveSupportRequest->meeting->start_url }}">
+                                    @lang("app.start_zoom_meetting")</a>
                             </div>
+                            <hr>
                             <div class="form-check form-check-inline">
-                                <a class="form-check-label" href="{{ $liveSupportRequest->meeting->join_url }}">Join
-                                    Zoom Link</a>
+                                <a class="form-check-label" href="{{ $liveSupportRequest->meeting->join_url }}">@lang("app.join_zoom_meetting")</a>
                             </div>
                         @endif
                     </div>

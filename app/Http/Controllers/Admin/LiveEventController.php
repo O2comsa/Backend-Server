@@ -119,8 +119,8 @@ class LiveEventController extends Controller
         $serve = new ZoomService();
 
         $meeting = $serve->createMeeting([
-            "agenda" => "ندوة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
-            "topic" => "ندوة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
+            "agenda" => "دورة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
+            "topic" => "دورة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
             "type" => 2, // 1 => instant, 2 => scheduled, 3 => recurring with no fixed time, 8 => recurring with fixed time
             "duration" => 60, // in minutes
             "timezone" => 'Asia/Riyadh', // set your timezone
@@ -188,8 +188,8 @@ class LiveEventController extends Controller
 
         if ($liveEvent->meeting) {
             $meeting = $serve->updateMeeting($liveEvent->meeting->meeting_id, [
-                "agenda" => "ندوة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
-                "topic" => "ندوة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
+                "agenda" => "دورة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
+                "topic" => "دورة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
                 "type" => 2, // 1 => instant, 2 => scheduled, 3 => recurring with no fixed time, 8 => recurring with fixed time
                 "duration" => 60, // in minutes
                 "timezone" => 'Asia/Riyadh', // set your timezone
@@ -200,8 +200,8 @@ class LiveEventController extends Controller
 
         } else {
             $meeting = $serve->createMeeting([
-                "agenda" => "ندوة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
-                "topic" => "ندوة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
+                "agenda" => "دورة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
+                "topic" => "دورة مباشرة بعنوان : {$liveEvent->name} مقدمها: {$liveEvent->event_presenter} يوم {$liveEvent->event_at}",
                 "type" => 2, // 1 => instant, 2 => scheduled, 3 => recurring with no fixed time, 8 => recurring with fixed time
                 "duration" => 60, // in minutes
                 "timezone" => 'Asia/Riyadh', // set your timezone

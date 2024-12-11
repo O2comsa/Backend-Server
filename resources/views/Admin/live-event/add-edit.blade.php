@@ -133,13 +133,12 @@
                             <br>
                             @if($liveEvent->meeting)
                                 <div class="form-check  mt-4">
-                                    <a class="form-check-label" href="{{ $liveEvent->meeting->start_url }}">Start
-                                        Zoom Link</a>
+                                    <a class="form-check-label" href="{{ $liveEvent->meeting->start_url }}">
+                                        @lang("app.start_zoom_meetting")</a>
                                 </div>
                                 <hr>
                                 <div class="form-check ">
-                                    <a class="form-check-label" href="{{ $liveEvent->meeting->join_url }}">Join
-                                        Zoom Link</a>
+                                    <a class="form-check-label" href="{{ $liveEvent->meeting->join_url }}">@lang("app.join_zoom_meetting")</a>
                                 </div>
                             @endif
                         </div>

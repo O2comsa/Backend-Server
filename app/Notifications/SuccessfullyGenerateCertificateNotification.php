@@ -35,7 +35,7 @@ class SuccessfullyGenerateCertificateNotification extends Notification implement
 
         if ($this->certificate->related instanceof LiveEvent) {
             $this->title = 'تم إصدار الشهادة';
-            $this->body = "تم إصدار الشهادة لحضورك الندوة المباشرة : {$this->certificate->related->name} ";
+            $this->body = "تم إصدار الشهادة لحضورك دورة المباشرة : {$this->certificate->related->name} ";
         } elseif ($this->certificate->related instanceof Course) {
             $this->title = 'تم إصدار الشهادة';
             $this->body = "تم إصدار الشهادة لإتمامك الدورة : {$this->certificate->related->title} ";

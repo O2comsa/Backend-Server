@@ -113,7 +113,7 @@ class LiveEventController extends Controller
         // Handle paid events
         $dateTime = time();
         $paymentPageResult = $this->paytabService->create_pay_page([
-            "cart_description" => "اشتراك ندوة : {$liveEvent->name}",
+            "cart_description" => "اشتراك دورة : {$liveEvent->name}",
             "cart_id" => "{$user->id}-liveEvent-{$liveEventId}-{$dateTime}",
             "cart_amount" => $liveEvent->price,
             'customer_details' => [

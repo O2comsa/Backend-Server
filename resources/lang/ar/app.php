@@ -874,8 +874,8 @@ return [
     'is_course' => 'دورة مسجلة',
     'edit_certificates' => 'تعديل شهادة',
     'edit_live_support_request' => 'تعديل طلب دعم فني',
-    'live_support_request' => 'طلب دعم فني',
-    'live-support-request' => 'طلب دعم فني',
+    'live_support_request' => 'طلبات الدعم الفني',
+    'live-support-request' => 'طلبات الدعم الفني',
     'live-support-request.delete' => 'حذف طلبات الدعم',
     'info_live_support_request' => 'بيانات دعم فني',
     'approved_by_admin' => 'تم الموافقه بواسطة',
@@ -898,6 +898,8 @@ return [
     'number_of_seats' => 'عدد المقاعد',
     'addLiveEvent' => 'حفظ التغيرات',
     'national_id' =>"رقم الهوية",
-    "zoom_info" => "معلومات زوم",
-    'edit_live-event' => 'تعديل الدورةالمباشرة',
+    "zoom_info" => "معلومات زووم",
+    'edit_live-event' => 'تعديل الدورة المباشرة',
+    'start_zoom_meetting' => 'تفعيل قناة زووم',
+    'join_zoom_meetting' => 'الانضمام الي رابط الجلسة'
  ];
