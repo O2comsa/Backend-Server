@@ -108,12 +108,12 @@
                         <label for="admin_name">@lang('app.zoom_info')</label>
                         <br>
                         @if( in_array($liveSupportRequest->status,[\App\Helpers\LiveSupportRequestStatus::ACCEPTED_STATUS,\App\Helpers\LiveSupportRequestStatus::WAITING_STATUS,\App\Helpers\LiveSupportRequestStatus::IN_PROGRESS_STATUS]) && $liveSupportRequest->meeting)
-                            <div class="form-check form-check-inline">
+                            <div class="form-check ">
                                 <a class="form-check-label" href="{{ $liveSupportRequest->meeting->start_url }}">
                                     @lang("app.start_zoom_meetting")</a>
                             </div>
                             <hr>
-                            <div class="form-check form-check-inline">
+                            <div class="form-check ">
                                 <a class="form-check-label" href="{{ $liveSupportRequest->meeting->join_url }}">@lang("app.join_zoom_meetting")</a>
                             </div>
                         @endif
