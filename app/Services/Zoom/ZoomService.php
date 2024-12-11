@@ -169,7 +169,7 @@ class ZoomService
         ]);
 
         $responseBody = json_decode($response->getBody()->getContents(), true);
-        $responseBody = Arr::except($responseBody, ['api_url']);
+        
         ZoomAccountsAccess::query()
             ->where('refresh_token', $refresh_token ?? $this->credential_data['refresh_token'])
             ->update($responseBody + ['expires_date' => Carbon::now()->addSeconds($responseBody['expires_in'])]);
