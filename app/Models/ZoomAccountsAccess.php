@@ -21,6 +21,7 @@ class ZoomAccountsAccess extends Model
 
         'email',
         'password',
+        'api_url',
     ];
 
     protected $casts = [
