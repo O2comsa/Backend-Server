@@ -897,5 +897,7 @@ return [
     'export' => 'تصدير',
     'number_of_seats' => 'عدد المقاعد',
     'addLiveEvent' => 'حفظ التغيرات',
-    'national_id' =>"رقم الهوية"
-];
+    'national_id' =>"رقم الهوية",
+    "zoom_info" => "معلومات زوم",
+    'edit_live-event' => 'تعديل الدورةالمباشرة',
+ ];

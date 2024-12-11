@@ -41,12 +41,12 @@
             </div>
             <div class="block-content block-content-full">
                 <div class="row">
-                    <div class="col-lg-2">
+                    {{-- <div class="col-lg-2">
                         <p class="font-size-sm text-muted">
                             @lang('app.info_live-event')
                         </p>
-                    </div>
-                    <div class="col-lg-6">
+                    </div> --}}
+                    <div class="col-lg-8 border p-2">
                         <div class="row">
                             @if($edit)
                                 <input hidden name="liveEvent_id" value="{{$liveEvent->id}}">
@@ -128,14 +128,16 @@
                         </div>
                     </div>
                     @if($edit)
-                        <div class="col-lg-4">
-                            <label for="admin_name">@lang('app.zoom_info')</label>
+                        <div class="col-lg-4 border p-2 rounded">
+                            <label for="admin_name mt-2">@lang('app.zoom_info')</label>
+                            <br>
                             @if($liveEvent->meeting)
-                                <div class="form-check form-check-inline">
+                                <div class="form-check  mt-4">
                                     <a class="form-check-label" href="{{ $liveEvent->meeting->start_url }}">Start
                                         Zoom Link</a>
                                 </div>
-                                <div class="form-check form-check-inline">
+                                <hr>
+                                <div class="form-check ">
                                     <a class="form-check-label" href="{{ $liveEvent->meeting->join_url }}">Join
                                         Zoom Link</a>
                                 </div>
@@ -143,7 +145,7 @@
                         </div>
                     @endif
                 </div>
-                <div class="col-md-3 ml-auto">
+                <div class="col-md-3 ml-auto ">
                     <button type="submit" class="btn btn-primary">
                         @if($edit)
                             @lang('app.editLiveEvent')

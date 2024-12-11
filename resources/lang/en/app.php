@@ -426,7 +426,7 @@ return [
     'count_used'=>'Count Used',
 
     'national_id'=>'National Id',
-    ''=>'',
+    'zoom_info'=>'Zoom Info',
     ''=>'',
     ''=>'',
 ];

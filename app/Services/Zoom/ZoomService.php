@@ -5,16 +5,15 @@ declare(strict_types=1);
 
 namespace App\Services\Zoom;
 
+use App\Models\Meeting;
+use App\Models\ZoomAccountsAccess;
+use App\Models\ZoomMeeting;
+use App\Models\ZoomRegistrant;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
-use App\Models\Meeting;
-use App\Models\ZoomMeeting;
-use Illuminate\Support\Arr;
-use App\Models\ZoomRegistrant;
-use App\Models\ZoomAccountsAccess;
-use Illuminate\Support\Facades\File;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Support\Facades\File;
 
 class ZoomService
 {
@@ -169,7 +168,7 @@ class ZoomService
         ]);
 
         $responseBody = json_decode($response->getBody()->getContents(), true);
-        
+
         ZoomAccountsAccess::query()
             ->where('refresh_token', $refresh_token ?? $this->credential_data['refresh_token'])
             ->update($responseBody + ['expires_date' => Carbon::now()->addSeconds($responseBody['expires_in'])]);
@@ -473,8 +472,8 @@ class ZoomService
 
             return [
                 'status' => true,
-                'data' => $previousMeetings
-            ];
+                'data' => $previousMeetings];
+
         } catch (\Throwable $th) {
             return [
                 'status' => false,
@@ -559,6 +558,7 @@ class ZoomService
                 'message' => $th->getMessage(),
             ];
         }
+
     }
 
     // recover meeting
@@ -618,6 +618,7 @@ class ZoomService
                 'message' => $th->getMessage(),
             ];
         }
+
     }
 
     public function addUser($data)
@@ -675,77 +676,77 @@ class ZoomService
                 'auto_recording' => 'cloud', // values are 'none', 'local', 'cloud'. default is none.
                 'approval_type' => 2, // 0 => Automatically Approve, 1 => Manually Approve, 2 => No Registration Required
 
-                //                "additional_data_center_regions" => [
-                //                    "TY"
-                //                ],
+//                "additional_data_center_regions" => [
+//                    "TY"
+//                ],
                 "allow_multiple_devices" => false,
-                //                "alternative_hosts" => "tariq.ayman94@gmail.com,",
+//                "alternative_hosts" => "tariq.ayman94@gmail.com,",
                 "alternative_hosts_email_notification" => true,
-                //                "approved_or_denied_countries_or_regions" => [
-                //                    "approved_list" => [
-                //                        "CX"
-                //                    ],
-                //                    "denied_list" => [
-                //                        "CA"
-                //                    ],
-                //                    "enable" => true,
-                //                    "method" => "approve"
-                //                ],
+//                "approved_or_denied_countries_or_regions" => [
+//                    "approved_list" => [
+//                        "CX"
+//                    ],
+//                    "denied_list" => [
+//                        "CA"
+//                    ],
+//                    "enable" => true,
+//                    "method" => "approve"
+//                ],
                 "audio_conference_info" => "test",
-                //                "authentication_domains" => "esharti.net",
-                //                "authentication_exception" => [
-                //                    [
-                //                        "email" => "jchill@example.com",
-                //                        "name" => "Jill Chill"
-                //                    ]
-                //                ],
-                //                "authentication_option" => "signIn_D8cJuqWVQ623CI4Q8yQK0Q",
+//                "authentication_domains" => "esharti.net",
+//                "authentication_exception" => [
+//                    [
+//                        "email" => "jchill@example.com",
+//                        "name" => "Jill Chill"
+//                    ]
+//                ],
+//                "authentication_option" => "signIn_D8cJuqWVQ623CI4Q8yQK0Q",
 
-                //                "breakout_room" => [
-                //                    "enable" => true,
-                //                    "rooms" => [
-                //                        [
-                //                            "name" => "room1",
-                //                            "participants" => [
-                //                                "jchill@example.com"
-                //                            ]
-                //                        ]
-                //                    ]
-                //                ],
+//                "breakout_room" => [
+//                    "enable" => true,
+//                    "rooms" => [
+//                        [
+//                            "name" => "room1",
+//                            "participants" => [
+//                                "jchill@example.com"
+//                            ]
+//                        ]
+//                    ]
+//                ],
                 "calendar_type" => 2,
                 "close_registration" => false,
-                //                "contact_email" => "jchill@example.com",
-                //                "contact_name" => "Jill Chill",
+//                "contact_email" => "jchill@example.com",
+//                "contact_name" => "Jill Chill",
                 "email_notification" => true,
                 "encryption_type" => "enhanced_encryption",
                 "focus_mode" => true,
-                //                "global_dial_in_countries" => [
-                //                    "US"
-                //                ],
-                //                "jbh_time" => 0,
-                //                "language_interpretation" => [
-                //                    "enable" => true,
-                //                    "interpreters" => [
-                //                        [
-                //                            "email" => "interpreter@example.com",
-                //                            "languages" => "US,FR"
-                //                        ]
-                //                    ]
-                //                ],
-                //                "sign_language_interpretation" => [
-                //                    "enable" => true,
-                //                    "interpreters" => [
-                //                        [
-                //                            "email" => "interpreter@example.com",
-                //                            "sign_language" => "American"
-                //                        ]
-                //                    ]
-                //                ],
+//                "global_dial_in_countries" => [
+//                    "US"
+//                ],
+//                "jbh_time" => 0,
+//                "language_interpretation" => [
+//                    "enable" => true,
+//                    "interpreters" => [
+//                        [
+//                            "email" => "interpreter@example.com",
+//                            "languages" => "US,FR"
+//                        ]
+//                    ]
+//                ],
+//                "sign_language_interpretation" => [
+//                    "enable" => true,
+//                    "interpreters" => [
+//                        [
+//                            "email" => "interpreter@example.com",
+//                            "sign_language" => "American"
+//                        ]
+//                    ]
+//                ],
                 "meeting_authentication" => false,
-                //                "meeting_invitees" => [
-                ////                    ["email" => "q5z@live.com"],
-                ////                    ["email" => "tariq.ayman94@gmail.com"],
-                //                ],
+//                "meeting_invitees" => [
+////                    ["email" => "q5z@live.com"],
+////                    ["email" => "tariq.ayman94@gmail.com"],
+//                ],
                 "private_meeting" => true,
                 "registrants_confirmation_email" => true,
                 "registrants_email_notification" => true,
@@ -762,31 +763,31 @@ class ZoomService
                 ],
                 "participant_focused_meeting" => false,
                 "push_change_to_calendar" => false,
-                //                "resources" => [
-                //                    [
-                //                        "resource_type" => "whiteboard",
-                //                        "resource_id" => "X4Hy02w3QUOdskKofgb9Jg",
-                //                        "permission_level" => "editor"
-                //                    ]
-                //                ]
+//                "resources" => [
+//                    [
+//                        "resource_type" => "whiteboard",
+//                        "resource_id" => "X4Hy02w3QUOdskKofgb9Jg",
+//                        "permission_level" => "editor"
+//                    ]
+//                ]
             ],
             "default_password" => false,
-            //            "recurrence" => [
-            //                "end_date_time" => "2023-11-12T15:59:00Z",
-            //                "end_times" => 7,
-            //                "monthly_day" => 1,
-            //                "monthly_week" => 1,
-            //                "monthly_week_day" => 1,
-            //                "repeat_interval" => 1,
-            //                "type" => 1,
-            //                "weekly_days" => "1"
-            //            ],
-            //            "tracking_fields" => [
-            //                [
-            //                    "field" => "field1",
-            //                    "value" => "value1"
-            //                ]
-            //            ],
+//            "recurrence" => [
+//                "end_date_time" => "2023-11-12T15:59:00Z",
+//                "end_times" => 7,
+//                "monthly_day" => 1,
+//                "monthly_week" => 1,
+//                "monthly_week_day" => 1,
+//                "repeat_interval" => 1,
+//                "type" => 1,
+//                "weekly_days" => "1"
+//            ],
+//            "tracking_fields" => [
+//                [
+//                    "field" => "field1",
+//                    "value" => "value1"
+//                ]
+//            ],
         ], $data);
     }
 }
