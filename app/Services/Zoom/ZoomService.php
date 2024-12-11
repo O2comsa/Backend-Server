@@ -5,15 +5,16 @@ declare(strict_types=1);
 
 namespace App\Services\Zoom;
 
-use App\Models\Meeting;
-use App\Models\ZoomAccountsAccess;
-use App\Models\ZoomMeeting;
-use App\Models\ZoomRegistrant;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use App\Models\Meeting;
+use App\Models\ZoomMeeting;
+use Illuminate\Support\Arr;
+use App\Models\ZoomRegistrant;
+use App\Models\ZoomAccountsAccess;
+use Illuminate\Support\Facades\File;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Support\Facades\File;
 
 class ZoomService
 {
@@ -168,8 +169,7 @@ class ZoomService
         ]);
 
         $responseBody = json_decode($response->getBody()->getContents(), true);
-        unset($responseBody['api_url']);
-
+        $responseBody = Arr::except($responseBody, ['api_url']);
         ZoomAccountsAccess::query()
             ->where('refresh_token', $refresh_token ?? $this->credential_data['refresh_token'])
             ->update($responseBody + ['expires_date' => Carbon::now()->addSeconds($responseBody['expires_in'])]);
