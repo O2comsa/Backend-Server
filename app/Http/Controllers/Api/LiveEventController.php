@@ -63,8 +63,6 @@ class LiveEventController extends Controller
         $liveEventId = $request->get('liveEvent_id');
         $eventRow = LiveEvent::find($liveEventId);
 
-        $eventRow->usersAttendee()->syncWithoutDetaching($user->id);
-
         //if free
         if (!$eventRow->is_paid) {
             $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $eventRow->id)->count();
@@ -73,6 +71,8 @@ class LiveEventController extends Controller
             if ( $attendeesNumber >= $eventRow->number_of_seats) {
                 return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }
+
+            $eventRow->usersAttendee()->syncWithoutDetaching($user->id);
 
             Transaction::create([
                 'user_id' => $user->id,
@@ -109,6 +109,8 @@ class LiveEventController extends Controller
             Log::info($attendeesNumber, 'number of attendence ');
             return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
         }
+
+        $eventRow->usersAttendee()->syncWithoutDetaching($user->id);
 
         // Handle paid events
         $dateTime = time();
