@@ -75,9 +75,9 @@ class PaytabsController extends Controller
                     }
 
                 } elseif ($related instanceof LiveEvent) {
-                    LiveEvent::find($paytabs->related_id)
-                        ->usersAttendee()
-                        ->syncWithoutDetaching($paytabs->user_id);
+                    // LiveEvent::find($paytabs->related_id)
+                    //     ->usersAttendee()
+                    //     ->syncWithoutDetaching($paytabs->user_id);
 
                     try {
                         $serve = new ZoomService();
@@ -200,6 +200,7 @@ class PaytabsController extends Controller
         if ($data && $data->success) {
             return view('Paytabs.thanks');
         } else {
+            Log::info('fail_payment-abanoub', $request->all());
             return view('Paytabs.fail');
         }
     }
