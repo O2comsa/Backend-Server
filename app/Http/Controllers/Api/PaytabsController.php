@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\ApiHelper;
-use App\Http\Controllers\Controller;
-use App\Models\Course;
-use App\Models\Dictionary;
-use App\Models\LiveEvent;
-use App\Models\Paytabs;
 use App\Models\Plan;
+use App\Models\Course;
+use App\Models\Paytabs;
+use App\Models\LiveEvent;
+use App\Helpers\ApiHelper;
+use App\Models\Dictionary;
 use App\Models\Transaction;
-use App\Notifications\SuccessfullyBuyDictionaryNotification;
+use Illuminate\Http\Request;
+use App\Services\Zoom\ZoomService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Services\Paytabs\PaytabService;
 use App\Notifications\SuccessfullyBuyPlanNotification;
 use App\Notifications\SuccessfullyPaymentNotification;
+use App\Notifications\SuccessfullyBuyDictionaryNotification;
 use App\Notifications\SuccessfullySubscriptionCourseNotification;
 use App\Notifications\SuccessfullySubscriptionLiveEventNotification;
-use App\Services\Paytabs\PaytabService;
-use App\Services\Zoom\ZoomService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class PaytabsController extends Controller
 {
@@ -78,7 +79,17 @@ class PaytabsController extends Controller
                     // LiveEvent::find($paytabs->related_id)
                     //     ->usersAttendee()
                     //     ->syncWithoutDetaching($paytabs->user_id);
+                    $eventRow = LiveEvent::find($paytabs->related_id);
 
+                    $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $eventRow->id)->count();
+                    // Check seat availability if limited
+                    if ( $attendeesNumber >= $eventRow->number_of_seats) {
+                        return;
+                        return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
+                    }
+        
+                    $eventRow->usersAttendee()->syncWithoutDetaching($paytabs->user_id);
+        
                     try {
                         $serve = new ZoomService();
 

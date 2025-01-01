@@ -111,7 +111,7 @@ class LiveEventController extends Controller
             return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
         }
 
-        $eventRow->usersAttendee()->syncWithoutDetaching($user->id);
+        // $eventRow->usersAttendee()->syncWithoutDetaching($user->id);
 
         // Handle paid events
         $dateTime = time();
