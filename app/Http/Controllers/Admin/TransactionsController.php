@@ -60,8 +60,8 @@ class TransactionsController extends Controller
         if (!empty($request->search['value'])) {
             $keyword = $request->search['value'];
             $transaction = $transaction->whereHas('user', function ($query) use ($keyword) {
-                $query->where('email', 'like', "%{$keyword}%")
-                ->orWhere('name', 'like', "%{$keyword}%");
+                $query->where('email', 'like', "{$keyword}%")
+                ->orWhere('name', 'like', "{$keyword}%");
             });
         }
 
@@ -78,11 +78,12 @@ class TransactionsController extends Controller
                 return Carbon::parse($transaction->updated_at)->format('Y-m-d H:i');
             })
             ->filterColumn('user', function ($query, $keyword) {
-                // Ensure search on 'user' column only applies to the 'email' attribute
                 $query->whereHas('user', function ($q) use ($keyword) {
-                    $q->where('email', 'like', "%{$keyword}%");
+                    $q->where('email', 'like', "{$keyword}%")
+                      ->orWhere('name', 'like', "{$keyword}%");
                 });
             })
+            
             ->rawColumns(['user']) // Allow raw HTML for user column if needed
             ->make(true);
     }
