@@ -83,10 +83,7 @@ class PaytabsController extends Controller
 
                     $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $eventRow->id)->count();
                     // Check seat availability if limited
-                    if ( $attendeesNumber >= $eventRow->number_of_seats) {
-                        return;
-                        return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
-                    }
+                    
         
                     $eventRow->usersAttendee()->syncWithoutDetaching($paytabs->user_id);
         
