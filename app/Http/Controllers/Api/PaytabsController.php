@@ -76,16 +76,9 @@ class PaytabsController extends Controller
                     }
 
                 } elseif ($related instanceof LiveEvent) {
-                    // LiveEvent::find($paytabs->related_id)
-                    //     ->usersAttendee()
-                    //     ->syncWithoutDetaching($paytabs->user_id);
-                    $eventRow = LiveEvent::find($paytabs->related_id);
-
-                    $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $eventRow->id)->count();
-                    // Check seat availability if limited
-                    
-        
-                    $eventRow->usersAttendee()->syncWithoutDetaching($paytabs->user_id);
+                    LiveEvent::find($paytabs->related_id)
+                        ->usersAttendee()
+                        ->syncWithoutDetaching($paytabs->user_id);
         
                     try {
                         $serve = new ZoomService();
