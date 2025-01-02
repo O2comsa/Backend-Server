@@ -61,7 +61,8 @@ class TransactionsController extends Controller
             $keyword = $request->search['value'];
             $transaction = $transaction->whereHas('user', function ($query) use ($keyword) {
                 $query->where('email', 'like', "{$keyword}%")
-                ->orWhere('name', 'like', "{$keyword}%");
+                ->orWhere('name', 'like', "{$keyword}%")
+                ->orWhere('national_id', 'like', "{$keyword}%");
             });
         }
 
@@ -80,7 +81,8 @@ class TransactionsController extends Controller
             ->filterColumn('user', function ($query, $keyword) {
                 $query->whereHas('user', function ($q) use ($keyword) {
                     $q->where('email', 'like', "{$keyword}%")
-                      ->orWhere('name', 'like', "{$keyword}%");
+                      ->orWhere('name', 'like', "{$keyword}%")
+                      ->orWhere('national_id', 'like', "{$keyword}%");
                 });
             })
             
