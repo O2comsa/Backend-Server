@@ -224,8 +224,7 @@ class CertificateController extends Controller
 
         $user = User::find($request->get('user_id'));
 
-        $pdfHTML = view('
-        ', [
+        $pdfHTML = view('certificate-pdf2', [
         'countDays' => $request->get('duration_days'),
             'courseName' => $related?->title ?? $related?->name,
             'days' => $request->get('duration_days'),
