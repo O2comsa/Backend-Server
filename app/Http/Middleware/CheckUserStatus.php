@@ -20,7 +20,6 @@ class CheckUserStatus
     public function handle(Request $request, Closure $next)
     {
         $user = Auth::user();
-Log::info('enter here now today');
         // Check if the user is authenticated and banned
         if ($user && $user->status === 'Banned') {
             Log::info("message: "+ auth()->user()->email);
