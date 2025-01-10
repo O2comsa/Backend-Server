@@ -24,7 +24,7 @@ class CheckUserStatus
         if ($user && $user->status === 'Banned') {
             auth()->logout();
 
-            ApiHelper::output(trans('app.banned'), 0);
+           return ApiHelper::output(trans('app.banned'), 0);
         }
 
         return $next($request);
