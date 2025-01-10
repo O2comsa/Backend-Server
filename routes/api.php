@@ -18,7 +18,7 @@ use App\Http\Controllers\Api\LiveSupportController;
 use App\Http\Controllers\Api\NotificationsController;
 use App\Http\Controllers\Api\PlansController;
 
-Route::group(['namespace' => 'Api'], function () {
+Route::middleware('check.user.status')->group(['namespace' => 'Api'], function () {
     //Auth
     Route::get('deleteAllWithDeletedAt','AuthController@deleteAllWithDeletedAt');
     Route::post('login', 'AuthController@login');
@@ -60,7 +60,7 @@ Route::group(['namespace' => 'Api'], function () {
             Route::resource('live-support', LiveSupportController::class)->only(['store', 'show']);
         });
         
-    Route::middleware(['auth:api', \App\Http\Middleware\IdentifierMiddleware::class,'check.user.status'])
+    Route::middleware(['auth:api', \App\Http\Middleware\IdentifierMiddleware::class])
         ->group(function () {
             //logout
             Route::post('logout', 'AuthController@logout');
