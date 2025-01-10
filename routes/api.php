@@ -25,20 +25,39 @@ Route::group(['namespace' => 'Api'], function () {
     Route::post('register', 'AuthController@register');
     Route::post('checkEmail', 'AuthController@checkEmail');
 
+    Route::get('banner', 'BannerController@index');
+
+
     Route::post('password/remind', 'PasswordResetController@sendPasswordReminder');
     Route::post('password/reset', 'PasswordResetController@postReset');
     Route::post('password/verify', 'PasswordResetController@verifyToken');
     Route::post('password/test', 'PasswordResetController@testFunc');
 
+    Route::get('search', 'SearchController@index')->name('search');
 
     //settings
+    Route::resource('settings', 'SettingsController')->names('api-settings');
 
     Route::middleware(\App\Http\Middleware\PublicMiddleware::class)
         ->group(function () {
-            
+            Route::resource('article', 'ArticlesController')->only(['index', 'show']);
+            Route::get('latest-article', 'ArticlesController@latest')->name('latest-article');
+
+            Route::apiResource('dictionary', 'DictionaryController')->only(['index', 'show']);
+
             // contact us
             Route::post('contactUs', 'ContactUsController@store');
 
+            Route::resource('course', 'CoursesController')->only(['index', 'show']);
+
+            Route::resource('lesson', 'LessonsController')->only(['index', 'show']);
+            Route::get('lesson/view/{id}', 'LessonsController@view');
+
+            Route::get('plans', [PlansController::class, 'index']);
+            Route::apiResource('live-events', LiveEventController::class)->only(['index', 'show']);
+
+            Route::get('live-support-status', [LiveSupportController::class, 'index']);
+            Route::resource('live-support', LiveSupportController::class)->only(['store', 'show']);
         });
         
     Route::middleware(['auth:api', \App\Http\Middleware\IdentifierMiddleware::class , 'check.user.status'])
@@ -49,27 +68,6 @@ Route::group(['namespace' => 'Api'], function () {
             //register device Token
             Route::post('register-device', 'AuthController@registerDevice');
             
-
-            Route::resource('article', 'ArticlesController')->only(['index', 'show']);
-            Route::get('latest-article', 'ArticlesController@latest')->name('latest-article');
-            Route::get('banner', 'BannerController@index');
-
-            Route::apiResource('dictionary', 'DictionaryController')->only(['index', 'show']);
-
-            Route::resource('course', 'CoursesController')->only(['index', 'show']);
-
-            Route::resource('lesson', 'LessonsController')->only(['index', 'show']);
-            Route::get('lesson/view/{id}', 'LessonsController@view');
-            Route::get('search', 'SearchController@index')->name('search');
-
-            Route::get('plans', [PlansController::class, 'index']);
-            Route::apiResource('live-events', LiveEventController::class)->only(['index', 'show']);
-
-            Route::get('live-support-status', [LiveSupportController::class, 'index']);
-            Route::resource('live-support', LiveSupportController::class)->only(['store', 'show']);
-           
-            Route::resource('settings', 'SettingsController')->names('api-settings');
-
             // profile
             Route::get('profile', 'AuthController@profile');
             Route::post('update-profile', 'AuthController@updateProfile');
@@ -121,3 +119,6 @@ Route::group(['namespace' => 'Api'], function () {
 Route::fallback(function () {
     return response([], 404);
 });
+Route::get('test-middleware', function () {
+    return response()->json(['message' => 'Middleware test successful']);
+})->middleware('check.user.status');
