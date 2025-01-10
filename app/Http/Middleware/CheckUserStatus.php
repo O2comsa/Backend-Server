@@ -22,7 +22,7 @@ class CheckUserStatus
         $user = Auth::user();
         // Check if the user is authenticated and banned
         if ($user && $user->status === 'Banned') {
-            Log::info("message: "+ auth()->user()->email);
+            Log::info("message: ". auth()->user()->email);
             auth()->logout();
 
            return ApiHelper::output(trans('app.banned'), 0);
