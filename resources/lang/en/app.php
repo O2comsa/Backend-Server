@@ -429,5 +429,12 @@ return [
     'zoom_info'=>'Zoom Info',
     'start_zoom_meetting'=>'Start zoom meeting',
     'join_zoom_meetting'=>'Join zoom meeting',
+    'Updating' => 'Updating',
+    'Please wait...' => 'Please wait...',
+    'Updated!' => 'Updated!',
+    'Status has been updated.' => 'Status has been updated.',
+    'Error' => 'Error',
+    'Something went wrong!' => 'Something went wrong!',
+    'ok' => 'OK',
 ];
     

@@ -901,5 +901,15 @@ return [
     "zoom_info" => "معلومات زووم",
     'edit_live-event' => 'تعديل الدورة المباشرة',
     'start_zoom_meetting' => 'تفعيل قناة زووم',
-    'join_zoom_meetting' => 'الانضمام الي رابط الجلسة'
+    'join_zoom_meetting' => 'الانضمام الي رابط الجلسة',
+    'Updated!' => 'تم التعديل',
+    'has been updated.' => 'تم التعديل',
+    'ok' => 'موافق',
+    'Updating' => 'جارٍ التحديث',
+    'Please wait...' => 'يرجى الانتظار...',
+    'Updated!' => 'تم التحديث!',
+    'Status has been updated.' => 'تم تحديث الحالة.',
+    'Error' => 'خطأ',
+    'Something went wrong!' => 'حدث خطأ ما!',
+    'ok' => 'حسنًا',
  ];

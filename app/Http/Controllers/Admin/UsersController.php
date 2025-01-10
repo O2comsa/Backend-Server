@@ -113,7 +113,7 @@ class UsersController extends Controller
             'national_id' => 'required|unique:users,national_id',
         ]);
 
-        $data = $request->only(['name', 'email', 'password', 'status','national_id']);
+        $data = $request->only(['name', 'email', 'password', 'status', 'national_id']);
         User::create($data);
         return redirect()->route('users.index')->withSuccess(trans('app.user_created'));
     }
@@ -151,10 +151,7 @@ class UsersController extends Controller
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
-
-    }
+    public function update(Request $request, $id) {}
 
     /**
      * Remove the specified resource from storage.
@@ -175,7 +172,7 @@ class UsersController extends Controller
             'national_id' => 'required|unique:users,national_id,' . \request()->user_id,
         ]);
 
-        $data = $request->only(['name', 'email', 'mobile', 'status','national_id']);
+        $data = $request->only(['name', 'email', 'mobile', 'status', 'national_id']);
 
         User::find($request->user_id)->update($data);
         return redirect()->back()->withSuccess(trans('app.user_updated'));
@@ -196,11 +193,11 @@ class UsersController extends Controller
         ]);
         $data = $request->all();
 
-//        if (trim($data['password']) == '') {
-//            unset($data['password']);
-//            unset($data['password_confirmation']);
-//        }
-//        $data['password'] = Hash::make($request->password);
+        //        if (trim($data['password']) == '') {
+        //            unset($data['password']);
+        //            unset($data['password_confirmation']);
+        //        }
+        //        $data['password'] = Hash::make($request->password);
         User::find($request->user_id)->update($data);
 
         return redirect()->route('users.edit', $request->user_id)->withSuccess(trans('app.login_updated'));
@@ -208,8 +205,25 @@ class UsersController extends Controller
 
     public function changeStatus(Request $request)
     {
-        User::find($request->id)->update(['status' => $request->status]);
-        \Notification::send(User::find($request->id), new \App\Notifications\UserStatusChange(User::find($request->id)));
-    }
+        $user = User::find($request->id);
 
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->update(['status' => $request->status]);
+
+        try {
+            // Send the notification
+            \Notification::send($user, new \App\Notifications\UserStatusChange($user));
+        } catch (\Throwable $e) {
+            // Log the error for debugging purposes
+            \Log::error('Failed to send notification: ' . $e->getMessage());
+
+            // Return success for status update but inform about notification failure
+            return response()->json(['message' => 'Status updated, but notification not sent'], 200);
+        }
+
+        return response()->json(['message' => 'Status updated and notification sent'], 200);
+    }
 }
