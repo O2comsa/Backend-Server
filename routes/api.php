@@ -60,7 +60,7 @@ Route::group(['namespace' => 'Api'], function () {
             Route::resource('live-support', LiveSupportController::class)->only(['store', 'show']);
         });
         
-    Route::middleware(['auth:api', \App\Http\Middleware\IdentifierMiddleware::class])
+    Route::middleware(['auth:api', \App\Http\Middleware\IdentifierMiddleware::class,'check.user.status'])
         ->group(function () {
             //logout
             Route::post('logout', 'AuthController@logout');
