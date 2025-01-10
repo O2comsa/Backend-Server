@@ -18,7 +18,7 @@ use App\Http\Controllers\Api\LiveSupportController;
 use App\Http\Controllers\Api\NotificationsController;
 use App\Http\Controllers\Api\PlansController;
 
-Route::middleware('check.user.status')->group(['namespace' => 'Api'], function () {
+Route::group(['namespace' => 'Api'], function () {
     //Auth
     Route::get('deleteAllWithDeletedAt','AuthController@deleteAllWithDeletedAt');
     Route::post('login', 'AuthController@login');
@@ -119,3 +119,6 @@ Route::middleware('check.user.status')->group(['namespace' => 'Api'], function (
 Route::fallback(function () {
     return response([], 404);
 });
+Route::get('test-middleware', function () {
+    return response()->json(['message' => 'Middleware test successful']);
+})->middleware('check.user.status');
