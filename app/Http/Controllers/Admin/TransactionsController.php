@@ -33,6 +33,7 @@ class TransactionsController extends Controller
     {
         $from = $request->from_date;
         $to = $request->to_date;
+        
 
         // Base query for transactions with initial conditions
         $transaction = Transaction::query()
@@ -46,7 +47,9 @@ class TransactionsController extends Controller
 
         // Apply date range filter
         if (isset($from) && $from != 'all' && isset($to) && $to != 'all') {
-            $transaction = $transaction->whereBetween('created_at', [$from, $to]);
+            $fromStart = Carbon::parse($from)->startOfDay(); // "2024-09-18 00:00:00"
+            $toEnd = Carbon::parse($to)->endOfDay();       // "2024-09-18 23:59:59"
+            $transaction = $transaction->whereBetween('created_at', [$fromStart, $toEnd]);
         } else {
             if (isset($from) && $from != 'all') {
                 $transaction = $transaction->whereDate('created_at', '>=', $from);
