@@ -45,4 +45,15 @@ class Paytabs extends Model
     {
         return $this->belongsTo(Transaction::class);
     }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
+
+    // Relationship with LiveEvent (if the paytab is related to a live event)
+    public function liveEvent()
+    {
+        return $this->belongsTo(LiveEvent::class, 'live_event_id');
+    }
 }

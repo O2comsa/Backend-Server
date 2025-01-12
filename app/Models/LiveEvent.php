@@ -91,4 +91,9 @@ class LiveEvent extends Model
     {
         return $this->usersAttendee()->where('user_id', request()->get('user_id'))->exists();
     }
+
+    public function paytabs()
+    {
+        return $this->hasMany(Paytabs::class, 'live_event_id');
+    }
 }

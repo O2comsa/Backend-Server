@@ -109,4 +109,10 @@ class Course extends Model
         }
         return $flag;
     }
+
+     // Relationship with Paytabs (A course can have many paytabs)
+     public function paytabs()
+     {
+         return $this->hasMany(Paytabs::class);
+     }
 }
