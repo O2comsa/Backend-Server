@@ -69,7 +69,7 @@ class LiveEventController extends Controller
 
             // Check seat availability if limited
             if ( $attendeesNumber >= $eventRow->number_of_seats) {
-                // return;
+                return;
                 return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
             }
 
@@ -107,7 +107,7 @@ class LiveEventController extends Controller
 
         // Check seat availability if limited
         if ($attendeesNumber >= $liveEvent->number_of_seats) {
-            // return;
+            return;
             return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
         }
 
