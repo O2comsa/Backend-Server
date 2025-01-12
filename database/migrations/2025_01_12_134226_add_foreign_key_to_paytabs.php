@@ -12,14 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('paytabs', function (Blueprint $table) {
-            if (!Schema::hasColumn('paytabs', 'live_event_id')) {
-                $table->unsignedBigInteger('live_event_id')->nullable()->after('course_id');
-            }
-        
-            // Add foreign key if it does not exist
-            if (!Schema::hasTable('paytabs_live_event_id_foreign')) {
-                $table->foreign('live_event_id')->references('id')->on('live_events')->onDelete('cascade');
-            }
+            $table->foreign('live_event_id')
+                  ->references('id')
+                  ->on('live_events')
+                  ->onDelete('cascade');
         });
     }
 
