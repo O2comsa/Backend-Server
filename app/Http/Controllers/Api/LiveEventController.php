@@ -53,7 +53,6 @@ class LiveEventController extends Controller
 
     public function buyEvent(Request $request)
     {
-        
         // Validate request inputs
         ApiHelper::validate($request, [
             'liveEvent_id' => "required|exists:live_events,id",
@@ -63,7 +62,7 @@ class LiveEventController extends Controller
         $user = User::find($request->get('user_id'));
         $liveEventId = $request->get('liveEvent_id');
         $eventRow = LiveEvent::find($liveEventId);
-        
+
         //if free
         if (!$eventRow->is_paid) {
             $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $eventRow->id)->count();
@@ -103,10 +102,7 @@ class LiveEventController extends Controller
 
         // Lock the event row for update to prevent simultaneous purchases
         $liveEvent = LiveEvent::find($liveEventId);
-        
-        if (!LiveEvent::find($liveEvent->id)) {
-            return ApiHelper::output('Invalid related ID.', 0);
-        }
+
         $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $liveEvent->id)->count();
 
         // Check seat availability if limited
