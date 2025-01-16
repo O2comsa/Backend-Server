@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Helpers\SubscriptionStatus;
-use App\Models\Category;
-use App\Models\OTP;
-use App\Models\Subscription;
-use App\Models\User;
-use App\Notifications\UserStatusChange;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use App\Models\OTP;
+use App\Models\User;
+use App\Models\Category;
 use App\Helpers\UserStatus;
-use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
+use App\Models\Subscription;
+use Illuminate\Http\Request;
 use Yajra\Datatables\Datatables;
+use Illuminate\Support\Facades\DB;
+use App\Helpers\SubscriptionStatus;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\UserStatusChange;
+use Illuminate\Notifications\Notification;
 
 class UsersController extends Controller
 {
@@ -206,16 +207,26 @@ class UsersController extends Controller
     public function changeStatus(Request $request)
     {
         $user = User::find($request->id);
-
+//Banned
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
+        
         $user->update(['status' => $request->status]);
 
         try {
             // Send the notification
-            \Notification::send($user, new \App\Notifications\UserStatusChange($user));
+            if($user->status == UserStatus::BANNED) {
+                DB::table('oauth_access_tokens')
+                ->where('user_id', $request->id)
+                ->delete();
+        
+                \Notification::send($user, new \App\Notifications\BlockUserNotification($user));
+
+            }else{
+                \Notification::send($user, new \App\Notifications\UserStatusChange($user));
+            }
         } catch (\Throwable $e) {
             // Log the error for debugging purposes
             \Log::error('Failed to send notification: ' . $e->getMessage());

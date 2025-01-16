@@ -912,4 +912,7 @@ return [
     'Error' => 'خطأ',
     'Something went wrong!' => 'حدث خطأ ما!',
     'ok' => 'حسنًا',
+    'mail_you_status' => 'تم تغيير الحالة الي  ',
+    "Banned" => 'محظور',
+    'Active' => 'مفعل',
  ];
