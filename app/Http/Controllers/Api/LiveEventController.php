@@ -154,7 +154,6 @@ class LiveEventController extends Controller
         // التحقق من المدخلات
         ApiHelper::validate($request, [
             'liveEvent_id' => "required|exists:live_events,id",
-            'user_id' => "required|exists:users,id",
         ]);
 
         // جلب المستخدم والحدث
@@ -166,7 +165,7 @@ class LiveEventController extends Controller
 
         try {
             // قفل السجل لمنع التداخل أثناء تعديل الحدث
-            $liveEvent = LiveEvent::lockForUpdate()->findOrFail($liveEventId);
+            $liveEvent = LiveEvent::findOrFail($liveEventId);
 
             // إذا كان الحدث مجاني
             if (!$liveEvent->is_paid) {
@@ -228,9 +227,10 @@ class LiveEventController extends Controller
             DB::commit();
 
             // إرسال طلب إلى بوابة الدفع
+            $dateTime = time();
             $paymentPageResult = $this->paytabService->create_pay_page([
                 "cart_description" => "اشتراك دورة : {$liveEvent->name}",
-                "cart_id" => "{$user->id}-liveEvent-{$liveEventId}-" . time(),
+                "cart_id" => "{$user->id}-liveEvent-{$liveEventId}-{$dateTime}",
                 "cart_amount" => $liveEvent->price,
                 'customer_details' => [
                     "name" => $user->name,
@@ -240,8 +240,12 @@ class LiveEventController extends Controller
             ]);
 
             if ($paymentPageResult->success) {
-                // تخزين بيانات الدفع في قاعدة البيانات
-                Paytabs::query()->create([
+                if (isset($paymentPageResult->responseResult)) {
+                    $paymentPageResult->responseResult->payment_url = $paymentPageResult->responseResult->redirect_url;
+                }
+
+                // Store payment details in the database
+                $paytab = \App\Models\Paytabs::query()->create([
                     'payment_reference' => $paymentPageResult->responseResult->tran_ref,
                     'user_id' => $user->id,
                     'related_id' => $liveEvent->id,
@@ -249,12 +253,10 @@ class LiveEventController extends Controller
                     'related_type' => LiveEvent::class,
                 ]);
 
-                // إعادة رابط الدفع للمستخدم
                 return ApiHelper::output($paymentPageResult);
             } else {
-                // في حالة فشل الدفع، تحرير المقعد المحجوز
-                $this->releaseSeat($liveEvent->id, $user->id);
-                return ApiHelper::output('حدث خطأ أثناء إنشاء رابط الدفع', 0);
+                // Return error response if payment page creation failed
+                return ApiHelper::output($paymentPageResult->errors, 0);
             }
         } catch (\Exception $e) {
             DB::rollBack();
