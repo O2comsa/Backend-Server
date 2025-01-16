@@ -23,7 +23,7 @@ class ReleaseExpiredReservations extends Command
     {
         // حذف الحجوزات المنتهية والتي لم يتم تأكيدها
         $expired = DB::table('live_event_attendees')
-            ->where('is_confirmed', false)
+            ->where('is_confirmed', false)->orWhere('is_confirmed', 0)
             ->where('reserved_at', '<', Carbon::now()->subMinutes(1)) // وقت الحجز 1 دقائق
             ->delete();
 
