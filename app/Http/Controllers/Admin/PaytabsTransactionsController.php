@@ -64,7 +64,12 @@ class PaytabsTransactionsController extends Controller
                 return $row->transaction->note ?? '';
             })
             ->addColumn('course', function ($row) {
-                return $row->course->title ?? '';
+                if ($row->related instanceof \App\Models\Course) {
+                    return $row->related->title ?? '';
+                } elseif ($row->related instanceof \App\Models\LiveEvent) {
+                    return $row->related->name ?? ''; // Assuming LiveEvent has a `name` attribute
+                }
+                return '';
             })
             ->addColumn('paid', function ($row) {
                 return $row->paid ? trans('app.paid') : '';
