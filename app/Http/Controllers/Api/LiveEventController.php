@@ -178,7 +178,6 @@ class LiveEventController extends Controller
 
                 if ($attendeesNumber >= $liveEvent->number_of_seats) {
                     DB::rollBack();
-                    return;
                     return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
                 }
 
@@ -197,7 +196,7 @@ class LiveEventController extends Controller
                 );
 
                 DB::commit();
-                
+
                 return ApiHelper::output('تم التسجيل بنجاح في الحدث المجاني.');
             }
 
@@ -209,7 +208,6 @@ class LiveEventController extends Controller
 
             if ($attendeesNumber >= $liveEvent->number_of_seats) {
                 DB::rollBack();
-                return 0;
                 return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
             }
 
