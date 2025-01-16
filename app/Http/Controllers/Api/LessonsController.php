@@ -194,21 +194,40 @@ class LessonsController extends Controller
     public function complete($id, Request $request)
     {
         $lesson = Lesson::find($id);
-    
+
         if (auth('api')->check()) {
+            $userId = request()->get('user_id');
+
+            // Fetch the last completed lesson for the user within the current course
+            $lastCompletedLesson = DB::table('users_complete_lessons')
+                ->where('user_id', $userId)
+                ->whereIn('lesson_id', $id)
+                ->latest('created_at')
+                ->first();
+
+            // Check if there's at least 1 hour between the last completed lesson and the current lesson
+            if ($lastCompletedLesson) {
+                $lastCompletedAt = Carbon::parse($lastCompletedLesson->created_at);
+                $now = Carbon::now();
+
+                // Ensure at least 1 hour has passed since the last completion
+                if ($now->diffInHours($lastCompletedAt) < 1) {
+                    return ApiHelper::output(trans('app.complete_lesson_soon'), 0);
+                }
+            }
             // Mark the lesson as completed for the user without detaching existing records
             $lesson->userCompleted()->syncWithoutDetaching(request()->get('user_id'));
-    
+
             // Get all lessons in the course and count them
             $lessons = $lesson->course->lessons();
             $lessonsCount = $lessons->count();
-    
+
             // Fetch completed lessons for the user within the current course
             $completedLessons = DB::table('users_complete_lessons')
                 ->where('user_id', request()->get('user_id'))
                 ->whereIn('Lesson_id', $lessons->pluck('id'))
                 ->latest();
-    
+
             // Check if the certificate is already generated
             $isUserGenerated = auth('api')
                 ->user()
@@ -216,26 +235,31 @@ class LessonsController extends Controller
                 ->where('related_type', 'App\Models\Course')
                 ->where('related_id', $lesson->course_id)
                 ->exists();
-    
+
             if ($lessonsCount == $completedLessons->count() && !$isUserGenerated) {
                 try {
                     // Prepare data for certificate creation
                     $data['related_id'] = $lesson->course_id;
                     $data['related_type'] = Course::class;
                     $data['user_id'] = $request->get('user_id');
-    
+
                     // Calculate duration between first and last completed lesson
                     $firstCompletedAt = Carbon::parse($completedLessons->min('created_at'));
                     $lastCompletedAt = Carbon::parse($completedLessons->max('created_at'));
-    
-                    $data['duration_hours'] = $lastCompletedAt->diffInHours($firstCompletedAt);
-                    $data['duration_days'] = $lastCompletedAt->diffInDays($firstCompletedAt);
+
+                    // $data['duration_hours'] = $lastCompletedAt->diffInHours($firstCompletedAt);
+                    $data['duration_hours'] = 3;
+
+                    // $data['duration_days'] = $lastCompletedAt->diffInDays($firstCompletedAt);
+
+                    $data['duration_days'] = 1;
+
                     $data['start_date'] = $firstCompletedAt->format('Y/m/d');
                     $data['end_date'] = $lastCompletedAt->format('Y/m/d');
-    
+
                     $related = Course::find($data['related_id']);
                     $user = User::find($request->get('user_id'));
-    
+
                     // Render the certificate HTML for generating the PDF
                     $pdfHTML = view('certificate-pdf', [
                         'countDays' => $data['duration_days'],
@@ -247,9 +271,9 @@ class LessonsController extends Controller
                         'user_name' => $user->name,
                         'hours' => $data['duration_hours']
                     ])->render();
-    
+
                     $fileName = $request->get('user_id') . '_' . md5(now());
-    
+
                     // Create the PDF and image file using Browsershot
                     $browserShot = new Browsershot();
                     $browserShot->html($pdfHTML)
@@ -260,7 +284,7 @@ class LessonsController extends Controller
                         ->showBackground()
                         ->landscape()
                         ->savePdf(public_path("upload/files/certificates/$fileName.pdf"));
-    
+
                     $browserShot->html($pdfHTML)
                         ->setNodeBinary('/opt/cpanel/ea-nodejs20/bin/node')
                         ->setNpmBinary('/opt/cpanel/ea-nodejs20/bin/npm')
@@ -269,15 +293,15 @@ class LessonsController extends Controller
                         ->showBackground()
                         ->landscape()
                         ->save(public_path("upload/files/certificates/$fileName.png"));
-    
+
                     // Add paths for the generated PDF and image to the certificate data
                     $data['from'] = '';
                     $data['file_pdf'] = "$fileName.pdf";
                     $data['image'] = "$fileName.png";
-    
+
                     // Create the certificate in the database
                     $certificate = Certificate::create($data);
-    
+
                     // Notify the user about the certificate generation
                     try {
                         $user->notify(new SuccessfullyGenerateCertificateNotification($certificate));
@@ -285,16 +309,15 @@ class LessonsController extends Controller
                     } catch (\Exception $exception) {
                         Log::error($exception);
                     }
-    
                 } catch (\Exception $exception) {
                     Log::error($exception);
                 }
             }
         }
-    
+
         return ApiHelper::output(trans('app.success'));
     }
-    
+
     /**
      * set lesson to viewed.
      *
