@@ -62,7 +62,7 @@ class AuthController extends Controller
             return ApiHelper::output(trans('app.login_error'), 0);
         }
         if ($user->status != UserStatus::ACTIVE) {
-            $data = trans('app.cannot_login') . trans('app.' . $user->status);
+            $data = trans('app.cannot_login');
             return ApiHelper::output($data, 0);
         }
         if (!Hash::check($password, $user->password)) {
