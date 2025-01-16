@@ -81,7 +81,7 @@ class LiveEventController extends Controller
                 'out' => 0,
                 'order_id' => 0,
                 'balance' => 0,
-                'note' => 'القاموس مجاني',
+                'note' => "القاموس مجاني - $eventRow->name ",
                 'is_free' => 1,
             ]);
 
