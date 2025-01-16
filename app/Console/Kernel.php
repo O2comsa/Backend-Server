@@ -30,7 +30,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('send-zoom-meeting-reminder')->everyMinute();
 
         $schedule->command('app:zoom-update-access-token-command')->everyThirtyMinutes();
-
+        $schedule->command('event:release-expired-reservations')->everyMinute();
     }
 
     /**
