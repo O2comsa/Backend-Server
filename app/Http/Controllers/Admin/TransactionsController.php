@@ -62,11 +62,14 @@ class TransactionsController extends Controller
         // Apply search filter specifically on user's email if a search value is provided
         if (!empty($request->search['value'])) {
             $keyword = $request->search['value'];
-            $transaction = $transaction->whereHas('user', function ($query) use ($keyword) {
-                $query->where('email', 'like', "{$keyword}%")
-                ->orWhere('name', 'like', "%{$keyword}%")
-                ->orWhere('national_id', 'like', "%{$keyword}%")
-                ->orWhere('mobile', 'like', "%{$keyword}%");
+            $transaction = $transaction->where(function ($query) use ($keyword) {
+                $query->whereHas('user', function ($query) use ($keyword) {
+                    $query->where('email', 'like', "{$keyword}%")
+                          ->orWhere('name', 'like', "%{$keyword}%")
+                          ->orWhere('national_id', 'like', "%{$keyword}%")
+                          ->orWhere('mobile', 'like', "%{$keyword}%");
+                })
+                ->orWhere('note', 'like', "%{$keyword}%"); // Add this condition for the 'note' field
             });
         }
 
