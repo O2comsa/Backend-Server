@@ -27,8 +27,11 @@ class PaytabsTransactionsController extends Controller
 
     public function getPaytabsTransactions($from = null, $to = null)
     {
-        $transaction = Paytabs::query()->where('paid', 1);
+ // Start with the query for Paytabs transactions
+ $transaction = Paytabs::query()->where('paid', 1);
 
+ // Ensure the related model exists (either Course or LiveEvent)
+ $transaction = $transaction->whereHas('related');
         if (isset($from) && $from != 'all' && isset($to) && $to != 'all') {
             $transaction = $transaction->whereBetween('created_at', [$from, $to]);
         } else {
@@ -70,7 +73,20 @@ class PaytabsTransactionsController extends Controller
                     return $row->related->name ?? ''; // Assuming LiveEvent has a `name` attribute
                 }
                 return '';
+            })->filterColumn('course', function ($query, $keyword) {
+                $query->whereHas('related', function ($relatedQuery) use ($keyword) {
+                    $relatedQuery->where(function ($subQuery) use ($relatedQuery, $keyword) {
+                        $subQuery->when($relatedQuery->getModel() instanceof \App\Models\Course, function ($query) use ($keyword) {
+                            $query->where('title', 'like', "%{$keyword}%");
+                        })
+                        ->when($relatedQuery->getModel() instanceof \App\Models\LiveEvent, function ($query) use ($keyword) {
+                            $query->where('name', 'like', "%{$keyword}%");
+                        });
+                    });
+                });
             })
+            
+            
             ->addColumn('paid', function ($row) {
                 return $row->paid ? trans('app.paid') : '';
             })
