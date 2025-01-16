@@ -27,11 +27,11 @@ class PaytabsTransactionsController extends Controller
 
     public function getPaytabsTransactions($from = null, $to = null)
     {
- // Start with the query for Paytabs transactions
- $transaction = Paytabs::query()->where('paid', 1);
+        // Start with the query for Paytabs transactions
+        $transaction = Paytabs::query()->where('paid', 1);
 
- // Ensure the related model exists (either Course or LiveEvent)
- $transaction = $transaction->whereHas('related');
+        // Ensure the related model exists (either Course or LiveEvent)
+        $transaction = $transaction->whereHas('related');
         if (isset($from) && $from != 'all' && isset($to) && $to != 'all') {
             $transaction = $transaction->whereBetween('created_at', [$from, $to]);
         } else {
@@ -42,7 +42,7 @@ class PaytabsTransactionsController extends Controller
                 $transaction = $transaction->whereDate('created_at', '>=', $to);
             }
         }
-        
+
 
         $transaction = $transaction->whereHas('user')->with('user')->latest();
 
@@ -55,7 +55,7 @@ class PaytabsTransactionsController extends Controller
                 return (isset($row->user)) ? '<a href="' . route('users.edit', $row->user->id) . '">' . $row->user->name . '</a>' : '';
             })
             ->filterColumn('user', function ($query, $keyword) {
-                
+
                 $query->whereHas('user', function ($query) use ($keyword) {
                     $query->where('name', 'like', "%{$keyword}%");
                 });
@@ -71,6 +71,8 @@ class PaytabsTransactionsController extends Controller
                     return $row->related->title ?? '';
                 } elseif ($row->related instanceof \App\Models\LiveEvent) {
                     return $row->related->name ?? ''; // Assuming LiveEvent has a `name` attribute
+                }elseif ($row->related instanceof \App\Models\Plan) {
+                    return $row->related->name ?? ''; // Assuming LiveEvent has a `name` attribute
                 }
                 return '';
             })->filterColumn('course', function ($query, $keyword) {
@@ -79,18 +81,18 @@ class PaytabsTransactionsController extends Controller
                         $subQuery->when($relatedQuery->getModel() instanceof \App\Models\Course, function ($query) use ($keyword) {
                             $query->where('title', 'like', "%{$keyword}%");
                         })
-                        ->when($relatedQuery->getModel() instanceof \App\Models\LiveEvent, function ($query) use ($keyword) {
-                            $query->where('name', 'like', "%{$keyword}%");
-                        });
+                            ->when($relatedQuery->getModel() instanceof \App\Models\LiveEvent, function ($query) use ($keyword) {
+                                $query->where('name', 'like', "%{$keyword}%");
+                            });
                     });
                 });
             })
-            
-            
+
+
             ->addColumn('paid', function ($row) {
                 return $row->paid ? trans('app.paid') : '';
             })
-            ->rawColumns(['action', 'user', 'created_at', 'transaction_note', 'course','paid'])
+            ->rawColumns(['action', 'user', 'created_at', 'transaction_note', 'course', 'paid'])
             ->addColumn('updated_at', function ($row) {
                 return $row->updated_at->diffForHumans();
             })
@@ -104,5 +106,4 @@ class PaytabsTransactionsController extends Controller
         $paytabs = Paytabs::find($id);
         return view('Admin.paytabs_transaction.show', compact('paytabs'));
     }
-
 }
