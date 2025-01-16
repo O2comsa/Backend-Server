@@ -79,10 +79,11 @@ class PaytabsController extends Controller
                     LiveEvent::find($paytabs->related_id)
                         ->usersAttendee()
                         ->syncWithoutDetaching($paytabs->user_id);
+
                         DB::table('live_event_attendees')->updateOrInsert(
                             ['live_event_id' => $paytabs->related_id, 'user_id' =>$paytabs->user_id],
                             [
-                                'is_confirmed' => false, // حجز مؤقت
+                                'is_confirmed' => true, // حجز مؤقت
                                 'reserved_at' => now(),
                                 'created_at' => now(),
                                 'updated_at' => now(),
