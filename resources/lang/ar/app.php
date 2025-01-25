@@ -915,4 +915,5 @@ return [
     'mail_you_status' => 'تم تغيير الحالة الي  ',
     "Banned" => 'محظور',
     'Active' => 'مفعل',
+    'account_unban_notification'=>'تم رفع الحظر عن حسابكم في تطبيق إشارتي',
  ];

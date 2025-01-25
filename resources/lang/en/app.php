@@ -436,5 +436,6 @@ return [
     'Error' => 'Error',
     'Something went wrong!' => 'Something went wrong!',
     'ok' => 'OK',
+    "account_unban_notification" => "Your account has been unblocked ",
 ];
     
