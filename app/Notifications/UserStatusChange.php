@@ -43,11 +43,14 @@ class UserStatusChange extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->greeting(trans('app.welcome'))
-            ->line(trans('app.welcome').' : '.$this->user->name)
-            ->line(trans('app.mail_you_status').' : '.trans('app.'.$this->user->status));
-
+            ->subject(trans('app.account_unban_notification')) // Custom subject
+            ->greeting('إشعار رفع حظر الحساب في تطبيق إشارتي') // Arabic subject
+            ->line('مرحباً، ' . $this->user->name) // Include the user name dynamically
+            ->line('نود إعلامكم بأنه تم رفع الحظر عن حسابكم في تطبيق إشارتي.')
+            ->line('نشكركم على تفهمكم، ونتمنى لكم كل التوفيق.')
+            ->salutation('مع خالص التحية،'); // Add a closing message
     }
+
 
     /**
      * Get the array representation of the notification.
