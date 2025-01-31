@@ -176,14 +176,11 @@ class LiveEventController extends Controller
 
             // إذا كان الحدث مجاني
             if (!$liveEvent->is_paid) {
-                // إضافة المستخدم كحضور
-                $liveEvent->usersAttendee()->syncWithoutDetaching($user->id);
 
-                // تسجيل الحضور في جدول `live_event_attendees` مع حالة مؤقتة
                 DB::table('live_event_attendees')->updateOrInsert(
                     ['live_event_id' => $liveEvent->id, 'user_id' => $user->id],
                     [
-                        'is_confirmed' => 1, // تأكيد الحجز
+                        'is_confirmed' => 1, // حجز مؤقت
                         'reserved_at' => now(),
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -198,16 +195,16 @@ class LiveEventController extends Controller
                     'note' => 'القاموس مجاني',
                     'is_free' => 1,
                 ]);
-                
+
                 auth('api')->user()->notify(new SuccessfullySubscriptionLiveEventNotification($liveEvent));
                 $serve = new ZoomService();
-    
+
                 $serve->addMeetingRegistrant($liveEvent->meeting->meeting_id, [
                     'first_name' => auth('api')->user()->name,
                     'last_name' => ' User',
                     'email' => auth('api')->user()->email
                 ], $request->get('user_id'));
-    
+
                 // زيادة عدد المقاعد المحجوزة
                 $liveEvent->increment('reserved_seats');
 
@@ -282,5 +279,4 @@ class LiveEventController extends Controller
             return ApiHelper::output('حدث خطأ أثناء العملية', 0);
         }
     }
-   
 }
