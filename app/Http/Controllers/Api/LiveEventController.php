@@ -188,7 +188,7 @@ class LiveEventController extends Controller
                 DB::table('live_event_attendees')->updateOrInsert(
                     ['live_event_id' => $liveEvent->id, 'user_id' => $user->id],
                     [
-                        'is_confirmed' => true, // تأكيد الحجز
+                        'is_confirmed' => 1, // تأكيد الحجز
                         'reserved_at' => now(),
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -212,9 +212,7 @@ class LiveEventController extends Controller
                 return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
             }
 
-            // حجز مقعد مؤقت قبل الدفع
-            $liveEvent->usersAttendee()->syncWithoutDetaching($user->id);
-
+            
             // تحديث جدول `live_event_attendees` بالحجز المؤقت
             DB::table('live_event_attendees')->updateOrInsert(
                 ['live_event_id' => $liveEvent->id, 'user_id' => $user->id],
