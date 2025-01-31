@@ -30,7 +30,7 @@ class ReleaseExpiredReservations extends Command
 
         $expiredReservations = DB::table('live_event_attendees')
             ->where('is_confirmed', 0)
-            ->where('reserved_at', '<', now()->subMinutes(15)) // Reservations older than 15 minutes
+            ->where('reserved_at', '<', now()->subMinutes(1)) // Reservations older than 15 minutes
             ->get();
 
         foreach ($expiredReservations as $reservation) {
