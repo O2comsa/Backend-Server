@@ -205,6 +205,7 @@ class LiveEventController extends Controller
 
             if (!$updated) {
                 DB::rollBack();
+                return 0;
                 return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
             }
 
