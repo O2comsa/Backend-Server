@@ -159,13 +159,12 @@ class LiveEventController extends Controller
         // جلب المستخدم والحدث
         $user = User::find($request->get('user_id'));
         $liveEventId = $request->get('liveEvent_id');
-        $liveEvent = LiveEvent::findOrFail($liveEventId);
 
         DB::beginTransaction();
 
         try {
             // قفل السجل لمنع التداخل أثناء تعديل الحدث
-            $liveEvent = LiveEvent::findOrFail($liveEventId);
+            $liveEvent = LiveEvent::lockForUpdate()->findOrFail($liveEventId);
 
             // تحقق من عدد الحضور
             $attendeesNumber = DB::table('live_event_attendees')
