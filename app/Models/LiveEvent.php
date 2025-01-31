@@ -25,6 +25,7 @@ class LiveEvent extends Model
         'status',
         'image',
         'number_of_seats',
+        'reserved_seats'
     ];
 
     protected $casts = [
@@ -89,7 +90,7 @@ class LiveEvent extends Model
 
     public function getPurchasedAttribute()
     {
-        return $this->usersAttendee()->where('user_id', request()->get('user_id'))->exists();
+        return $this->usersAttendee()->where('user_id', request()->get('user_id'))->where('is_confirmed', 1)->exists();
     }
 
     public function paytabs()
