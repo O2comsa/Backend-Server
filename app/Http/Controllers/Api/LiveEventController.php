@@ -169,8 +169,9 @@ class LiveEventController extends Controller
             // تحقق من عدد المقاعد المتاحة
             if ($liveEvent->reserved_seats >= $liveEvent->number_of_seats) {
                 DB::rollBack();
-                return 0;
-                return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
+                return ApiHelper::output(['message' => 'لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة']);
+
+                // return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
             }
 
             // إذا كان الحدث مجاني
@@ -188,13 +189,31 @@ class LiveEventController extends Controller
                         'updated_at' => now(),
                     ]
                 );
-
+                Transaction::create([
+                    'user_id' => $user->id,
+                    'in' => 0,
+                    'out' => 0,
+                    'order_id' => 0,
+                    'balance' => 0,
+                    'note' => 'القاموس مجاني',
+                    'is_free' => 1,
+                ]);
+                
+                auth('api')->user()->notify(new SuccessfullySubscriptionLiveEventNotification($liveEvent));
+                $serve = new ZoomService();
+    
+                $serve->addMeetingRegistrant($liveEvent->meeting->meeting_id, [
+                    'first_name' => auth('api')->user()->name,
+                    'last_name' => ' User',
+                    'email' => auth('api')->user()->email
+                ], $request->get('user_id'));
+    
                 // زيادة عدد المقاعد المحجوزة
                 $liveEvent->increment('reserved_seats');
 
                 DB::commit();
 
-                return ApiHelper::output('تم التسجيل بنجاح في الحدث المجاني.');
+                return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
             }
 
             // إذا كان الحدث مدفوع
@@ -206,8 +225,9 @@ class LiveEventController extends Controller
 
             if (!$updated) {
                 DB::rollBack();
-                return 0;
-                return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
+                return ApiHelper::output(['message' => 'لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة']);
+
+                // return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
             }
 
             // تسجيل الحجز المؤقت
@@ -262,13 +282,5 @@ class LiveEventController extends Controller
             return ApiHelper::output('حدث خطأ أثناء العملية', 0);
         }
     }
-    private function releaseSeat($eventId, $userId)
-    {
-        // حذف الحجز المؤقت في حال فشل الدفع
-        DB::table('live_event_attendees')
-            ->where('live_event_id', $eventId)
-            ->where('user_id', $userId)
-            ->where('is_confirmed', false)
-            ->delete();
-    }
+   
 }
