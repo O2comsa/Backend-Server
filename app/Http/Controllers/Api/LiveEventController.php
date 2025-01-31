@@ -155,33 +155,33 @@ class LiveEventController extends Controller
         ApiHelper::validate($request, [
             'liveEvent_id' => "required|exists:live_events,id",
         ]);
-
+    
         // جلب المستخدم والحدث
         $user = User::find($request->get('user_id'));
         $liveEventId = $request->get('liveEvent_id');
-
+    
         DB::beginTransaction();
-
+    
         try {
             // قفل السجل لمنع التداخل أثناء تعديل الحدث
             $liveEvent = LiveEvent::lockForUpdate()->findOrFail($liveEventId);
-
+    
             // تحقق من عدد الحضور
             $attendeesNumber = DB::table('live_event_attendees')
                 ->where('live_event_id', $liveEvent->id)
                 ->where('is_confirmed', true)
                 ->count();
-
+    
             if ($attendeesNumber >= $liveEvent->number_of_seats) {
                 DB::rollBack();
                 return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
             }
-
+    
             // إذا كان الحدث مجاني
             if (!$liveEvent->is_paid) {
                 // إضافة المستخدم كحضور
                 $liveEvent->usersAttendee()->syncWithoutDetaching($user->id);
-
+    
                 // تسجيل الحضور في جدول `live_event_attendees` مع حالة مؤقتة
                 DB::table('live_event_attendees')->updateOrInsert(
                     ['live_event_id' => $liveEvent->id, 'user_id' => $user->id],
@@ -192,26 +192,31 @@ class LiveEventController extends Controller
                         'updated_at' => now(),
                     ]
                 );
-
+    
                 DB::commit();
-
+    
                 return ApiHelper::output('تم التسجيل بنجاح في الحدث المجاني.');
             }
-
+    
             // إذا كان الحدث مدفوع
-            // تحديث جدول `live_event_attendees` بالحجز المؤقت
-            DB::table('live_event_attendees')->updateOrInsert(
-                ['live_event_id' => $liveEvent->id, 'user_id' => $user->id],
-                [
+            // حاول إضافة حجز مؤقت
+            try {
+                DB::table('live_event_attendees')->insert([
+                    'live_event_id' => $liveEvent->id,
+                    'user_id' => $user->id,
                     'is_confirmed' => 0, // حجز مؤقت
                     'reserved_at' => now(),
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]
-            );
-
+                ]);
+            } catch (\Exception $e) {
+                // إذا كان الحجز موجود بالفعل (انتهاك القيد الفريد)
+                DB::rollBack();
+                return ApiHelper::output('تم حجز المقعد بالفعل.', 0);
+            }
+    
             DB::commit();
-
+    
             // إرسال طلب إلى بوابة الدفع
             $dateTime = time();
             $paymentPageResult = $this->paytabService->create_pay_page([
@@ -224,12 +229,12 @@ class LiveEventController extends Controller
                     "ip" => $_SERVER['REMOTE_ADDR'],
                 ],
             ]);
-
+    
             if ($paymentPageResult->success) {
                 if (isset($paymentPageResult->responseResult)) {
                     $paymentPageResult->responseResult->payment_url = $paymentPageResult->responseResult->redirect_url;
                 }
-
+    
                 // Store payment details in the database
                 $paytab = \App\Models\Paytabs::query()->create([
                     'payment_reference' => $paymentPageResult->responseResult->tran_ref,
@@ -238,7 +243,7 @@ class LiveEventController extends Controller
                     'create_response' => $paymentPageResult,
                     'related_type' => LiveEvent::class,
                 ]);
-
+    
                 return ApiHelper::output($paymentPageResult);
             } else {
                 // Return error response if payment page creation failed
@@ -251,7 +256,6 @@ class LiveEventController extends Controller
             return ApiHelper::output('حدث خطأ أثناء العملية', 0);
         }
     }
-
     private function releaseSeat($eventId, $userId)
     {
         // حذف الحجز المؤقت في حال فشل الدفع
