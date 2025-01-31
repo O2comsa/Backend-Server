@@ -177,6 +177,7 @@ class LiveEventController extends Controller
 
                 if ($attendeesNumber >= $liveEvent->number_of_seats) {
                     DB::rollBack();
+                    return 0;
                     return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
                 }
 
@@ -202,11 +203,12 @@ class LiveEventController extends Controller
             // إذا كان الحدث مدفوع
             $attendeesNumber = DB::table('live_event_attendees')
                 ->where('live_event_id', $liveEvent->id)
-                ->where('is_confirmed', true)
+                ->where('is_confirmed', 1)
                 ->count();
 
             if ($attendeesNumber >= $liveEvent->number_of_seats) {
                 DB::rollBack();
+                return 0;
                 return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
             }
 
@@ -217,7 +219,7 @@ class LiveEventController extends Controller
             DB::table('live_event_attendees')->updateOrInsert(
                 ['live_event_id' => $liveEvent->id, 'user_id' => $user->id],
                 [
-                    'is_confirmed' => false, // حجز مؤقت
+                    'is_confirmed' => 0, // حجز مؤقت
                     'reserved_at' => now(),
                     'created_at' => now(),
                     'updated_at' => now(),
