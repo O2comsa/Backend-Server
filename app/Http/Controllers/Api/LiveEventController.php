@@ -167,20 +167,19 @@ class LiveEventController extends Controller
             // قفل السجل لمنع التداخل أثناء تعديل الحدث
             $liveEvent = LiveEvent::findOrFail($liveEventId);
 
+            // تحقق من عدد الحضور
+            $attendeesNumber = DB::table('live_event_attendees')
+                ->where('live_event_id', $liveEvent->id)
+                ->where('is_confirmed', true)
+                ->count();
+
+            if ($attendeesNumber >= $liveEvent->number_of_seats) {
+                DB::rollBack();
+                return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
+            }
+
             // إذا كان الحدث مجاني
             if (!$liveEvent->is_paid) {
-                // تحقق من عدد الحضور
-                $attendeesNumber = DB::table('live_event_attendees')
-                    ->where('live_event_id', $liveEvent->id)
-                    ->where('is_confirmed', true)
-                    ->count();
-
-                if ($attendeesNumber >= $liveEvent->number_of_seats) {
-                    DB::rollBack();
-                    return 0;
-                    return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
-                }
-
                 // إضافة المستخدم كحضور
                 $liveEvent->usersAttendee()->syncWithoutDetaching($user->id);
 
@@ -201,18 +200,6 @@ class LiveEventController extends Controller
             }
 
             // إذا كان الحدث مدفوع
-            $attendeesNumber = DB::table('live_event_attendees')
-                ->where('live_event_id', $liveEvent->id)
-                ->where('is_confirmed', 1)
-                ->count();
-
-            if ($attendeesNumber >= $liveEvent->number_of_seats) {
-                DB::rollBack();
-                return 0;
-                return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
-            }
-
-            
             // تحديث جدول `live_event_attendees` بالحجز المؤقت
             DB::table('live_event_attendees')->updateOrInsert(
                 ['live_event_id' => $liveEvent->id, 'user_id' => $user->id],
@@ -256,6 +243,7 @@ class LiveEventController extends Controller
                 return ApiHelper::output($paymentPageResult);
             } else {
                 // Return error response if payment page creation failed
+                DB::rollBack();
                 return ApiHelper::output($paymentPageResult->errors, 0);
             }
         } catch (\Exception $e) {
