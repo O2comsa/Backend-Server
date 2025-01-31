@@ -22,11 +22,29 @@ class ReleaseExpiredReservations extends Command
     public function handle()
     {
         // حذف الحجوزات المنتهية والتي لم يتم تأكيدها
-        $expired = DB::table('live_event_attendees')
-            ->where('is_confirmed', false)->orWhere('is_confirmed', 0)
-            ->where('reserved_at', '<', Carbon::now()->subMinutes(1)) // وقت الحجز 1 دقائق
-            ->delete();
+        // $expired = DB::table('live_event_attendees')
+        //     ->where('is_confirmed', false)->orWhere('is_confirmed', 0)
+        //     ->where('reserved_at', '<', Carbon::now()->subMinutes(1)) // وقت الحجز 1 دقائق
+        //     ->delete();
 
-        $this->info("تم تحرير المقاعد المحجوزة المنتهية: {$expired} سجل");
+
+        $expiredReservations = DB::table('live_event_attendees')
+            ->where('is_confirmed', 0)
+            ->where('reserved_at', '<', now()->subMinutes(15)) // Reservations older than 15 minutes
+            ->get();
+
+        foreach ($expiredReservations as $reservation) {
+            // Decrement the `reserved_seats` column for the corresponding event
+            DB::table('live_events')
+                ->where('id', $reservation->live_event_id)
+                ->decrement('reserved_seats');
+
+            // Delete the expired reservation
+            DB::table('live_event_attendees')
+                ->where('id', $reservation->id)
+                ->delete();
+
+            $this->info("تم تحرير المقاعد المحجوزة المنتهية: {$reservation} سجل");
+        }
     }
 }
