@@ -151,44 +151,39 @@ class LiveEventController extends Controller
 
     public function buyEvent(Request $request)
     {
-        // التحقق من المدخلات
+        // Validate the request
         ApiHelper::validate($request, [
             'liveEvent_id' => "required|exists:live_events,id",
         ]);
-
-        // جلب المستخدم والحدث
+    
+        // Get the user and event
         $user = User::find($request->get('user_id'));
         $liveEventId = $request->get('liveEvent_id');
-
+    
         DB::beginTransaction();
-
+    
         try {
-            // قفل السجل لمنع التداخل أثناء تعديل الحدث
+            // Lock the event record to prevent conflicts
             $liveEvent = LiveEvent::lockForUpdate()->findOrFail($liveEventId);
-
-            // تحقق من عدد المقاعد المتاحة
+    
+            // Check if seats are available
             if ($liveEvent->reserved_seats >= $liveEvent->number_of_seats) {
                 DB::rollBack();
-                return 0;
                 return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
-
-                return ApiHelper::output(['message' => 'لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة']);
-
-                // return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
             }
-
-            // إذا كان الحدث مجاني
+    
+            // If the event is free
             if (!$liveEvent->is_paid) {
-
                 DB::table('live_event_attendees')->updateOrInsert(
                     ['live_event_id' => $liveEvent->id, 'user_id' => $user->id],
                     [
-                        'is_confirmed' => 1, // حجز مؤقت
+                        'is_confirmed' => 1, // Temporary reservation
                         'reserved_at' => now(),
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]
                 );
+    
                 Transaction::create([
                     'user_id' => $user->id,
                     'in' => 0,
@@ -198,55 +193,49 @@ class LiveEventController extends Controller
                     'note' => 'القاموس مجاني',
                     'is_free' => 1,
                 ]);
-
+    
                 auth('api')->user()->notify(new SuccessfullySubscriptionLiveEventNotification($liveEvent));
                 $serve = new ZoomService();
-
+    
                 $serve->addMeetingRegistrant($liveEvent->meeting->meeting_id, [
                     'first_name' => auth('api')->user()->name,
                     'last_name' => ' User',
                     'email' => auth('api')->user()->email
                 ], $request->get('user_id'));
-
-                // زيادة عدد المقاعد المحجوزة
+    
+                // Increment reserved seats
                 $liveEvent->increment('reserved_seats');
-
+    
                 DB::commit();
-
-                return ApiHelper::output(['message' => 'هذا القاموس مجانا ولا داعي للدفع']);
+    
+                return ApiHelper::output(['message' => 'تم الحجز بنجاح! هذا القاموس مجاني ولا داعي للدفع.'], 1);
             }
-
-            // إذا كان الحدث مدفوع
-            // زيادة عدد المقاعد المحجوزة بشكل ذري
+    
+            // If the event is paid
             $updated = DB::table('live_events')
                 ->where('id', $liveEvent->id)
                 ->where('reserved_seats', '<', $liveEvent->number_of_seats)
                 ->increment('reserved_seats');
-
+    
             if (!$updated) {
                 DB::rollBack();
-                return 0;
-                                return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
-
-                return ApiHelper::output(['message' => 'لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة']);
-
-                // return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
+                return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
             }
-
-            // تسجيل الحجز المؤقت
+    
+            // Record temporary reservation
             DB::table('live_event_attendees')->updateOrInsert(
                 ['live_event_id' => $liveEvent->id, 'user_id' => $user->id],
                 [
-                    'is_confirmed' => 0, // حجز مؤقت
+                    'is_confirmed' => 0, // Temporary reservation
                     'reserved_at' => now(),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]
             );
-
+    
             DB::commit();
-
-            // إرسال طلب إلى بوابة الدفع
+    
+            // Send request to payment gateway
             $dateTime = time();
             $paymentPageResult = $this->paytabService->create_pay_page([
                 "cart_description" => "اشتراك دورة : {$liveEvent->name}",
@@ -258,12 +247,12 @@ class LiveEventController extends Controller
                     "ip" => $_SERVER['REMOTE_ADDR'],
                 ],
             ]);
-
+    
             if ($paymentPageResult->success) {
                 if (isset($paymentPageResult->responseResult)) {
                     $paymentPageResult->responseResult->payment_url = $paymentPageResult->responseResult->redirect_url;
                 }
-
+    
                 // Store payment details in the database
                 $paytab = \App\Models\Paytabs::query()->create([
                     'payment_reference' => $paymentPageResult->responseResult->tran_ref,
@@ -272,17 +261,17 @@ class LiveEventController extends Controller
                     'create_response' => $paymentPageResult,
                     'related_type' => LiveEvent::class,
                 ]);
-
-                return ApiHelper::output($paymentPageResult);
+    
+                return ApiHelper::output(['message' => 'تم إنشاء صفحة الدفع بنجاح.', 'payment_url' => $paymentPageResult->responseResult->payment_url], 1);
             } else {
                 // Return error response if payment page creation failed
                 DB::rollBack();
-                return ApiHelper::output($paymentPageResult->errors, 0);
+                return ApiHelper::output('فشل إنشاء صفحة الدفع. يرجى المحاولة مرة أخرى.', 0);
             }
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error buying event: ' . $e->getMessage());
-            return ApiHelper::output('حدث خطأ أثناء العملية', 0);
+            return ApiHelper::output('حدث خطأ أثناء العملية. يرجى المحاولة مرة أخرى.', 0);
         }
     }
 }
