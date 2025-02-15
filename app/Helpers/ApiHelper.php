@@ -27,17 +27,22 @@ class ApiHelper
     }
 
     public static function output($data, $success = 1)
-    {
-        if ($success == 1) {
-            return response()->json([
-                'data' => (empty($data)) ? [] : $data,
-            ], 200);
-        } else {
-            return response()->json([
-                'errors' => (empty($data)) ? [] : [$data],
-            ], 400);
-        }
+{
+    if ($success == 1) {
+        return response()->json([
+            'data' => (empty($data)) ? [] : $data,
+        ], 200);
+    } else {
+        // Format error to match frontend expectations
+        // If $data is already a string, wrap it in an array
+        // If it's an array, keep it as is
+        $errorMessages = is_array($data) ? $data : [$data];
+        
+        return response()->json([
+            'errors' => $errorMessages
+        ], 400);
     }
+}
 
     public static function saveBase64Image($path, $photo, $ext)
     {

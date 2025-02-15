@@ -169,7 +169,7 @@ class LiveEventController extends Controller
             // تحقق من عدد المقاعد المتاحة
             if ($liveEvent->reserved_seats >= $liveEvent->number_of_seats) {
                 DB::rollBack();
-                return ApiHelper::output(['message' => 'لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة']);
+                return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
 
                 // return ApiHelper::output('لا تستطيع الحجز الآن لأن كل المقاعد ممتلئة', 0);
             }
