@@ -162,15 +162,14 @@ class LiveEventController extends Controller
 
         DB::beginTransaction();
         $liveEvent = LiveEvent::findOrFail($liveEventId);
-        if($liveEvent->number_of_seats){
-            
+        $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $liveEvent->id)->count();
 
-            if($liveEvent->number_of_seats <= $liveEvent->usersAttendee()->count()){
-                
-                return;
-                return ApiHelper::output( 'لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
-            }    
+        // Check seat availability if limited
+        if ($attendeesNumber >= $liveEvent->number_of_seats) {
+            return;
+            return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
         }
+
         try {
             // قفل السجل لمنع التداخل أثناء تعديل الحدث
             $liveEvent = LiveEvent::lockForUpdate()->findOrFail($liveEventId);
