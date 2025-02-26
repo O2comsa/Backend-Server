@@ -160,7 +160,6 @@ class LiveEventController extends Controller
         $user = User::find($request->get('user_id'));
         $liveEventId = $request->get('liveEvent_id');
 
-        DB::beginTransaction();
         $liveEvent = LiveEvent::findOrFail($liveEventId);
         $attendeesNumber = DB::table('live_event_attendees')->where('live_event_id', $liveEvent->id)->count();
 
@@ -169,6 +168,9 @@ class LiveEventController extends Controller
             return;
             return ApiHelper::output('لا تستطيع الحجز الان لان كل المقاعد مكتملة', 0);
         }
+
+
+        DB::beginTransaction();
 
         try {
             // قفل السجل لمنع التداخل أثناء تعديل الحدث
