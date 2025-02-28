@@ -13,9 +13,9 @@ class ApiHelper
 {
     public static function validate($request, $validation_data, $message = null)
     {
-        if(isset($message)){
+        if (isset($message)) {
             $validator = Validator::make($request->all(), $validation_data, $message);
-        }else{
+        } else {
             $validator = Validator::make($request->all(), $validation_data);
         }
 
@@ -27,22 +27,18 @@ class ApiHelper
     }
 
     public static function output($data, $success = 1)
-{
-    if ($success == 1) {
-        return response()->json([
-            'data' => (empty($data)) ? [] : $data,
-        ], 200);
-    } else {
-        // Format error to match frontend expectations
-        // If $data is already a string, wrap it in an array
-        // If it's an array, keep it as is
-        $errorMessages = is_array($data) ? $data : [$data];
-        
-        return response()->json([
-            'errors' => $errorMessages
-        ], 400);
+    {
+        if ($success == 1) {
+            return response()->json([
+                'data' => (empty($data)) ? [] : $data,
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'errors' => (empty($data)) ? [] : [$data],
+            ], 400);
+        }
     }
-}
 
     public static function saveBase64Image($path, $photo, $ext)
     {
