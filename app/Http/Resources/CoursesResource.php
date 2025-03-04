@@ -19,7 +19,7 @@ class CoursesResource extends JsonResource
             "title" => $this->title,
             "description" => $this->description,
             "image" => $this->image,
-            "price" => $this->price,
+            "price" => $this->price??0,
             "free" => $this->free,
             "lessons_count" => $this->lessons_count,
             "subscribed" => $this->subscribed,
