@@ -31,7 +31,7 @@ class CoursesController extends Controller
 
         $courses = $courses->withCount('lessons')
             ->whereHas('lessons')
-            ->oldest()
+            ->latest()
             ->paginate(10);
         return ApiHelper::output($courses);
     }

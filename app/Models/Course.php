@@ -47,7 +47,7 @@ class Course extends Model
 
     public function lessons()
     {
-        return $this->hasMany(Lesson::class, 'course_id')->latest();
+        return $this->hasMany(Lesson::class, 'course_id')->oldest();
     }
 
     public function courses()
