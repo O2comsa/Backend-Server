@@ -27,7 +27,7 @@ class CoursesResource extends JsonResource
             "completed" => $this->completed,
             "bookmarked" => $this->bookmarked,
             "prerequisite" => new RelatedCourses($this->courses),
-            "lessons" => [],
+            "lessons" => $this->lessons,
         ];
     }
 }

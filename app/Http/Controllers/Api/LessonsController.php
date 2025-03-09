@@ -31,10 +31,7 @@ class LessonsController extends Controller
             'course_id' => 'required'
         ]);
 
-        $lessons = Lesson::select(['id', 'title', 'video', 'lesson_time', 'image'])
-            ->where('course_id', \request()->get('course_id'))
-            ->where('status', CourseStatus::ACTIVE)
-            ->get();
+        $lessons = [];
 
         return ApiHelper::output($lessons);
     }
