@@ -20,7 +20,7 @@ class CoursesController extends Controller
     public function index(Request $request)
     {
         $courses = Course::select(['id', 'image', 'title', 'description', 'price', 'free'])
-            ->where('status', CourseStatus::ACTIVE)->latest();
+            ->where('status', CourseStatus::ACTIVE);
 
         if ($request->has('keyword')) {
             $courses = $courses->where(function ($query) use ($request) {
@@ -31,7 +31,7 @@ class CoursesController extends Controller
 
         $courses = $courses->withCount('lessons')
             ->whereHas('lessons')
-            ->latest()
+            ->oldest()
             ->paginate(10);
         return ApiHelper::output($courses);
     }
