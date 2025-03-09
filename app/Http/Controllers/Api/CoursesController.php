@@ -20,7 +20,7 @@ class CoursesController extends Controller
     public function index(Request $request)
     {
         $courses = Course::select(['id', 'image', 'title', 'description', 'price', 'free'])
-            ->where('status', CourseStatus::ACTIVE);
+            ->where('status', CourseStatus::ACTIVE)->latest();
 
         if ($request->has('keyword')) {
             $courses = $courses->where(function ($query) use ($request) {
