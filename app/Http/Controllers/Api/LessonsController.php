@@ -34,7 +34,7 @@ class LessonsController extends Controller
         $lessons = Lesson::select(['id', 'title', 'video', 'lesson_time', 'image'])
             ->where('course_id', \request()->get('course_id'))
             ->where('status', CourseStatus::ACTIVE)
-            ->latest('created_at')
+            ->oldest('created_at','desc')
             ->get();
 
         return ApiHelper::output($lessons);
