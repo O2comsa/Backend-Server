@@ -247,7 +247,7 @@ class LessonsController extends Controller
             ->where('related_id', $lesson->course_id)
             ->exists();
 
-        if ($lessonsCount === $completedLessonsCount && !$isUserGenerated) {
+        if ($lessonsCount === $completedLessonsCount) {
             Log::info("message email send successfully");
             try {
                 // Fetch completion timestamps
