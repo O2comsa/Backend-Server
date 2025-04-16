@@ -219,10 +219,10 @@ class LessonsController extends Controller
                     $data['related_type'] = Course::class;
                     $data['user_id'] = $request->get('user_id');
 
-                    $data['duration_hours'] = Carbon::parse($completedLessons->latest()->first()->created_at)->diffInHours($completedLessons->oldest()->first()->created_at);
+                    // $data['duration_hours'] = Carbon::parse($completedLessons->latest()->first()->created_at)->diffInHours($completedLessons->oldest()->first()->created_at);
                     $data['duration_hours'] = 3;
 
-                    $data['duration_days'] = Carbon::parse($completedLessons->latest()->first()->created_at)->diffInDays($completedLessons->oldest()->first()->created_at);
+                    // $data['duration_days'] = Carbon::parse($completedLessons->latest()->first()->created_at)->diffInDays($completedLessons->oldest()->first()->created_at);
                     $data['duration_days'] = 1;
 
                     $data['start_date'] = Carbon::parse($completedLessons->oldest()->first()->created_at)?->format('Y/m/d') ?? now();
@@ -233,9 +233,9 @@ class LessonsController extends Controller
                     $user = User::find($request->get('user_id'));
 
                     $pdfHTML = view('certificate-pdf', [
-                        'countDays' => $data['duration_days'],
+                        'countDays' => "1",
                         'courseName' => $related?->title ?? $related?->name,
-                        'days' => $data['duration_days'],
+                        'days' => "1",
                         'endDate' => $data['end_date'],
                         'nationalId' => $user->national_id,
                         'startDate' => $data['start_date'],
