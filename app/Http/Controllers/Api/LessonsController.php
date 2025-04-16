@@ -193,126 +193,148 @@ class LessonsController extends Controller
     // }
     public function complete($id, Request $request)
     {
+        // Find the lesson
         $lesson = Lesson::find($id);
+        if (!$lesson) {
+            return ApiHelper::output(trans('app.lesson_not_found'), 0);
+        }
 
-        if (auth('api')->check()) {
-            $userId = request()->get('user_id');
+        // Check if user is authenticated
+        if (!auth('api')->check()) {
+            return ApiHelper::output(trans('app.unauthenticated'), 0);
+        }
 
-            // Fetch the last completed lesson for the user within the current course
-            $lastCompletedLesson = DB::table('users_complete_lessons')
-                ->where('user_id', $userId)
-                ->whereIn('lesson_id', $id)
-                ->latest('created_at')
-                ->first();
+        // Validate user_id
+        $userId = $request->get('user_id');
+        if (auth('api')->id() !== (int) $userId) {
+            return ApiHelper::output(trans('app.unauthorized'), 0);
+        }
 
-            // Check if there's at least 1 hour between the last completed lesson and the current lesson
-            if ($lastCompletedLesson) {
-                $lastCompletedAt = Carbon::parse($lastCompletedLesson->created_at);
-                $now = Carbon::now();
+        // Fetch the last completed lesson for the user
+        $lastCompletedLesson = DB::table('users_complete_lessons')
+            ->where('user_id', $userId)
+            ->where('lesson_id', $id) // Fixed: Use where instead of whereIn
+            ->latest('created_at')
+            ->first();
 
-                // Ensure at least 1 hour has passed since the last completion
-                if ($now->diffInHours($lastCompletedAt) < 1) {
-                    return ApiHelper::output(trans('app.complete_lesson_soon'), 0);
-                }
+        // Check if at least 1 hour has passed since the last completion
+        if ($lastCompletedLesson) {
+            $lastCompletedAt = Carbon::parse($lastCompletedLesson->created_at);
+            $now = Carbon::now();
+            if ($now->diffInHours($lastCompletedAt) < 1) {
+                return ApiHelper::output(trans('app.complete_lesson_soon'), 0);
             }
-            // Mark the lesson as completed for the user without detaching existing records
-            $lesson->userCompleted()->syncWithoutDetaching(request()->get('user_id'));
+        }
 
-            // Get all lessons in the course and count them
-            $lessons = $lesson->course->lessons();
-            $lessonsCount = $lessons->count();
+        // Mark the lesson as completed
+        $lesson->userCompleted()->syncWithoutDetaching($userId);
 
-            // Fetch completed lessons for the user within the current course
-            $completedLessons = DB::table('users_complete_lessons')
-                ->where('user_id', request()->get('user_id'))
-                ->whereIn('Lesson_id', $lessons->pluck('id'))
-                ->latest();
+        // Get all lessons in the course
+        $lessons = $lesson->course->lessons()->get();
+        $lessonsCount = $lessons->count();
 
-            // Check if the certificate is already generated
-            $isUserGenerated = auth('api')
-                ->user()
-                ->certificates()
-                ->where('related_type', 'App\Models\Course')
-                ->where('related_id', $lesson->course_id)
-                ->exists();
+        // Count completed lessons for the user in the course
+        $completedLessonsCount = DB::table('users_complete_lessons')
+            ->where('user_id', $userId)
+            ->whereIn('lesson_id', $lessons->pluck('id')) // Fixed: Use get() to resolve query
+            ->count();
 
-            if ($lessonsCount == $completedLessons->count() && !$isUserGenerated) {
-                
-                try {
-                    // Prepare data for certificate creation
-                    $data['related_id'] = $lesson->course_id;
-                    $data['related_type'] = Course::class;
-                    $data['user_id'] = $request->get('user_id');
+        // Check if certificate already exists
+        $isUserGenerated = auth('api')
+            ->user()
+            ->certificates()
+            ->where('related_type', Course::class)
+            ->where('related_id', $lesson->course_id)
+            ->exists();
 
-                    // Calculate duration between first and last completed lesson
-                    $firstCompletedAt = Carbon::parse($completedLessons->min('created_at'));
-                    $lastCompletedAt = Carbon::parse($completedLessons->max('created_at'));
+        if ($lessonsCount === $completedLessonsCount && !$isUserGenerated) {
+            try {
+                // Fetch completion timestamps
+                $completionDates = DB::table('users_complete_lessons')
+                    ->where('user_id', $userId)
+                    ->whereIn('lesson_id', $lessons->pluck('id'))
+                    ->pluck('created_at');
 
-                    // $data['duration_hours'] = $lastCompletedAt->diffInHours($firstCompletedAt);
-                    $data['duration_hours'] = 3;
-
-                    // $data['duration_days'] = $lastCompletedAt->diffInDays($firstCompletedAt);
-
-                    $data['duration_days'] = 1;
-
-                    $data['start_date'] = $firstCompletedAt->format('Y/m/d');
-                    $data['end_date'] = $lastCompletedAt->format('Y/m/d');
-
-                    $related = Course::find($data['related_id']);
-                    $user = User::find($request->get('user_id'));
-
-                    // Render the certificate HTML for generating the PDF
-                    $pdfHTML = view('certificate-pdf', [
-                        'countDays' => $data['duration_days'],
-                        'courseName' => $related?->title ?? $related?->name,
-                        'days' => $data['duration_days'],
-                        'endDate' => $data['end_date'],
-                        'nationalId' => $user->national_id,
-                        'startDate' => $data['start_date'],
-                        'user_name' => $user->name,
-                        'hours' => $data['duration_hours']
-                    ])->render();
-
-                    $fileName = $request->get('user_id') . '_' . md5(now());
-
-                    // Create the PDF and image file using Browsershot
-                    $browserShot = new Browsershot();
-                    $browserShot->html($pdfHTML)
-                        ->setNodeBinary('/opt/cpanel/ea-nodejs20/bin/node')
-                        ->setNpmBinary('/opt/cpanel/ea-nodejs20/bin/npm')
-                        ->margins(10, 0, 10, 0)
-                        ->format('A4')
-                        ->showBackground()
-                        ->landscape()
-                        ->savePdf(public_path("upload/files/certificates/$fileName.pdf"));
-
-                    $browserShot->html($pdfHTML)
-                        ->setNodeBinary('/opt/cpanel/ea-nodejs20/bin/node')
-                        ->setNpmBinary('/opt/cpanel/ea-nodejs20/bin/npm')
-                        ->margins(10, 0, 10, 0)
-                        ->format('A4')
-                        ->showBackground()
-                        ->landscape()
-                        ->save(public_path("upload/files/certificates/$fileName.png"));
-
-                    // Add paths for the generated PDF and image to the certificate data
-                    $data['from'] = '';
-                    $data['file_pdf'] = "$fileName.pdf";
-                    $data['image'] = "$fileName.png";
-
-                    // Create the certificate in the database
-                    $certificate = Certificate::create($data);
-
-                    // Notify the user about the certificate generation
-                    try {
-                        $user->notify(new SuccessfullyGenerateCertificateNotification($certificate));
-                        $user->notify(new SuccessfullyGeneratedCertEmail($certificate)); // Send email with PDF attachment
-                    } catch (\Exception $exception) {
-                        Log::error($exception);
-                    }
-                } catch (\Exception $exception) {
-                    Log::error($exception);
+                if ($completionDates->isEmpty()) {
+                    Log::error('No completion dates found for certificate generation');
+                    return ApiHelper::output(trans('app.error'), 0);
                 }
+
+                $firstCompletedAt = Carbon::parse($completionDates->min());
+                $lastCompletedAt = Carbon::parse($completionDates->max());
+
+                // Prepare certificate data
+                $data = [
+                    'related_id' => $lesson->course_id,
+                    'related_type' => Course::class,
+                    'user_id' => $userId,
+                    'duration_hours' => $lastCompletedAt->diffInHours($firstCompletedAt),
+                    'duration_days' => $lastCompletedAt->diffInDays($firstCompletedAt),
+                    'start_date' => $firstCompletedAt->format('Y/m/d'),
+                    'end_date' => $lastCompletedAt->format('Y/m/d'),
+                ];
+
+                $related = Course::find($data['related_id']);
+                $user = User::find($userId);
+
+                if (!$related || !$user) {
+                    Log::error('Course or user not found for certificate generation');
+                    return ApiHelper::output(trans('app.error'), 0);
+                }
+
+                // Render certificate HTML
+                $pdfHTML = view('certificate-pdf', [
+                    'countDays' => $data['duration_days'],
+                    'courseName' => $related->title ?? $related->name ?? 'Unknown Course',
+                    'days' => $data['duration_days'],
+                    'endDate' => $data['end_date'],
+                    'nationalId' => $user->national_id ?? 'N/A',
+                    'startDate' => $data['start_date'],
+                    'user_name' => $user->name ?? 'Unknown User',
+                    'hours' => $data['duration_hours'],
+                ])->render();
+
+                // Ensure certificate directory exists
+                $directory = public_path('upload/files/certificates');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                $fileName = "{$userId}_" . md5(now());
+
+                // Generate PDF and image with a single Browsershot instance
+                $browserShot = new Browsershot();
+                $browserShot->html($pdfHTML)
+                    ->setNodeBinary('/opt/cpanel/ea-nodejs20/bin/node')
+                    ->setNpmBinary('/opt/cpanel/ea-nodejs20/bin/npm')
+                    ->margins(10, 0, 10, 0)
+                    ->format('A4')
+                    ->showBackground()
+                    ->landscape();
+
+                $browserShot->savePdf("{$directory}/{$fileName}.pdf");
+                $browserShot->save("{$directory}/{$fileName}.png");
+
+                // Save certificate data
+                $data['from'] = '';
+                $data['file_pdf'] = "{$fileName}.pdf";
+                $data['image'] = "{$fileName}.png";
+
+                // Create certificate within a transaction
+                $certificate = DB::transaction(function () use ($data) {
+                    return Certificate::create($data);
+                });
+
+                // Notify user
+                try {
+                    $user->notify(new SuccessfullyGenerateCertificateNotification($certificate));
+                    $user->notify(new SuccessfullyGeneratedCertEmail($certificate));
+                } catch (\Exception $exception) {
+                    Log::error("Notification error: {$exception->getMessage()}");
+                }
+            } catch (\Exception $exception) {
+                Log::error("Certificate generation error: {$exception->getMessage()}");
+                return ApiHelper::output(trans('app.error'), 0);
             }
         }
 
