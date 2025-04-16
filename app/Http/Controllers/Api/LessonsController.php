@@ -248,6 +248,7 @@ class LessonsController extends Controller
             ->exists();
 
         if ($lessonsCount === $completedLessonsCount && !$isUserGenerated) {
+            Log::info("message email send successfully");
             try {
                 // Fetch completion timestamps
                 $completionDates = DB::table('users_complete_lessons')
