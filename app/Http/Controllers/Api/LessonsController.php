@@ -235,7 +235,7 @@ class LessonsController extends Controller
                     $pdfHTML = view('certificate-pdf', [
                         'countDays' => $data['duration_days'],
                         'courseName' => $related?->title ?? $related?->name,
-                        'days' => '',
+                        'days' => $data['duration_days'],
                         'endDate' => $data['end_date'],
                         'nationalId' => $user->national_id,
                         'startDate' => $data['start_date'],
