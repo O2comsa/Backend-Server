@@ -193,62 +193,27 @@ class LessonsController extends Controller
     // }
     public function complete($id, Request $request)
     {
-        // Find the lesson
         $lesson = Lesson::find($id);
-        if (!$lesson) {
-            return ApiHelper::output(trans('app.lesson_not_found'), 0);
-        }
 
-        // Check if user is authenticated
-        if (!auth('api')->check()) {
-            return ApiHelper::output(trans('app.unauthenticated'), 0);
-        }
+        if (auth('api')->check()) {
+            $lesson->userCompleted()->syncWithoutDetaching(\request()->get('user_id'));
 
-        // Validate user_id
-        $userId = $request->get('user_id');
-        if (auth('api')->id() !== (int) $userId) {
-            return ApiHelper::output(trans('app.unauthorized'), 0);
-        }
+            $lessons = $lesson->course->lessons();
+            $lessonsCount = $lessons->count();
 
-        // Fetch the last completed lesson for the user
-        $lastCompletedLesson = DB::table('users_complete_lessons')
-            ->where('user_id', $userId)
-            ->where('lesson_id', $id) // Fixed: Use where instead of whereIn
-            ->latest('created_at')
-            ->first();
+            $completedLessons = DB::table('users_complete_lessons')
+                ->where('user_id', \request()->get('user_id'))
+                ->whereIn('Lesson_id', $lessons->pluck('id'))
+                ->latest();
 
-        // Check if at least 1 hour has passed since the last completion
-        if ($lastCompletedLesson) {
-            $lastCompletedAt = Carbon::parse($lastCompletedLesson->created_at);
-            $now = Carbon::now();
-            if ($now->diffInHours($lastCompletedAt) < 1) {
-                return ApiHelper::output(trans('app.complete_lesson_soon'), 0);
-            }
-        }
+            $isUserGenerated = auth('api')
+                ->user()
+                ->certificates()
+                ->where('related_type', 'App\Models\Course')
+                ->where('related_id', $lesson->course_id)
+                ->exists();
 
-        // Mark the lesson as completed
-        $lesson->userCompleted()->syncWithoutDetaching($userId);
-
-        // Get all lessons in the course
-        $lessons = $lesson->course->lessons()->get();
-        $lessonsCount = $lessons->count();
-
-        // Count completed lessons for the user in the course
-        $completedLessonsCount = DB::table('users_complete_lessons')
-            ->where('user_id', $userId)
-            ->whereIn('lesson_id', $lessons->pluck('id')) // Fixed: Use get() to resolve query
-            ->count();
-
-        // Check if certificate already exists
-        $isUserGenerated = auth('api')
-            ->user()
-            ->certificates()
-            ->where('related_type', Course::class)
-            ->where('related_id', $lesson->course_id)
-            ->exists();
-
-       
-            if ($lessonsCount == $completedLessons->count() && !$isUserGenerated) {
+            if ($lessonsCount == $completedLessons->count()) {
                 try {
                     $data['related_id'] = $lesson->course_id;
                     $data['related_type'] = Course::class;
@@ -309,10 +274,12 @@ class LessonsController extends Controller
                     Log::error($exception);
                 }
             }
-        
+        }
 
         return ApiHelper::output(trans('app.success'));
     }
+
+
 
     /**
      * set lesson to viewed.
