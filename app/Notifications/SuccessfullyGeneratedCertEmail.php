@@ -2,13 +2,14 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
-use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\LiveEvent;
+use App\Models\Certificate;
+use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class SuccessfullyGeneratedCertEmail extends Notification
 {
@@ -40,6 +41,7 @@ class SuccessfullyGeneratedCertEmail extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         if ($this->certificate->related instanceof LiveEvent) {
+            Log::info("message email send successfully");
             return (new MailMessage)
                 ->subject('تم إصدار الشهادة الخاصة بكم')
                 ->greeting('مرحباً, ' . $notifiable->name )
@@ -48,6 +50,7 @@ class SuccessfullyGeneratedCertEmail extends Notification
                 ->line(' تطبيق إشارتي')
                 ->attach($this->certificate->file_pdf);
         } else {
+            Log::info("message email send successfully");
             return (new MailMessage)
 
                 ->subject('تم إصدار الشهادة الخاصة بكم')

@@ -237,7 +237,7 @@ class LessonsController extends Controller
                 ->exists();
 
             if ($lessonsCount == $completedLessons->count() && !$isUserGenerated) {
-                dd('should work now ');
+                
                 try {
                     // Prepare data for certificate creation
                     $data['related_id'] = $lesson->course_id;
