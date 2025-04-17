@@ -22,15 +22,9 @@ class ReleaseExpiredReservations extends Command
     public function handle()
     {
         // حذف الحجوزات المنتهية والتي لم يتم تأكيدها
-        // $expired = DB::table('live_event_attendees')
-        //     ->where('is_confirmed', false)->orWhere('is_confirmed', 0)
-        //     ->where('reserved_at', '<', Carbon::now()->subMinutes(1)) // وقت الحجز 1 دقائق
-        //     ->delete();
-
-
         $expiredReservations = DB::table('live_event_attendees')
             ->where('is_confirmed', 0)
-            ->where('reserved_at', '<', now()->subMinutes(1)) // Reservations older than 15 minutes
+            ->where('reserved_at', '<', now()->subMinutes(1)) // Reservations older than 1 minute
             ->get();
 
         foreach ($expiredReservations as $reservation) {
@@ -44,7 +38,8 @@ class ReleaseExpiredReservations extends Command
                 ->where('id', $reservation->id)
                 ->delete();
 
-            $this->info("تم تحرير المقاعد المحجوزة المنتهية: {$reservation} سجل");
+            // Output specific property (e.g., id) instead of the whole object
+            $this->info("تم تحرير المقاعد المحجوزة المنتهية: {$reservation->id} سجل");
         }
     }
 }
