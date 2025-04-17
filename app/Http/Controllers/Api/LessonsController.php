@@ -232,7 +232,7 @@ class LessonsController extends Controller
 
                     $user = User::find($request->get('user_id'));
 
-                    $pdfHTML = view('certificate-pdf', [
+                    $pdfHTML = view('certificate-pdf2', [
                         'countDays' => "1",
                         'courseName' => $related?->title ?? $related?->name,
                         'days' => "1",

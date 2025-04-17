@@ -124,8 +124,11 @@ class CertificateController extends Controller
         $related = $request->get('related_type')::find($data['related_id']);
 
         $user = User::find($request->get('user_id'));
-
-        $pdfHTML = view('certificate-pdf2', [
+        $certificatePath = 'certificate-pdf';
+        if($request->related_type == Course::class){
+            $certificatePath = 'certificate-pdf2';
+        }
+        $pdfHTML = view($certificatePath, [
             'countDays' => $request->get('duration_days'),
                 'courseName' => $related?->title ?? $related?->name,
                 'days' => $request->get('duration_days'),
@@ -223,8 +226,11 @@ class CertificateController extends Controller
         $related = $request->get('related_type')::find($data['related_id']);
 
         $user = User::find($request->get('user_id'));
-
-        $pdfHTML = view('certificate-pdf2', [
+        $certificatePath = 'certificate-pdf';
+        if($request->related_type == Course::class){
+            $certificatePath = 'certificate-pdf2';
+        }
+        $pdfHTML = view($certificatePath, [
         'countDays' => $request->get('duration_days'),
             'courseName' => $related?->title ?? $related?->name,
             'days' => $request->get('duration_days'),
