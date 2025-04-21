@@ -36,7 +36,8 @@ class LiveEvent extends Model
 
     protected $appends = [
         'meeting_info',
-        'purchased'
+        'purchased',
+        'is_seat_available',
     ];
 
     public const ACTIVE_STATUS = 'active';
@@ -81,6 +82,10 @@ class LiveEvent extends Model
         }
 
         return $this->meeting;
+    }
+    public function getIsSeatAvailableAttribute()
+    {
+        return $this->reserved_seats < $this->number_of_seats;
     }
 
     public function meeting()
