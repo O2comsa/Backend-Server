@@ -20,6 +20,8 @@ class SendNotificationToAllUsersJob implements ShouldQueue
     protected $title;
     protected $message;
     protected $users;
+    public $timeout = 120; // أو 300 حسب الحاجة (بالثواني)
+
     public function __construct($users,$title, $message)
     {
         $this->title = $title;
