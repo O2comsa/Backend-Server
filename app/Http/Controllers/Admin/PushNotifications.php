@@ -14,6 +14,7 @@ use App\Jobs\SendNotificationToAllUsersJob;
 class PushNotifications extends Controller
 {
     use FCMNotification;
+    
     public function __construct()
     {
         $this->middleware('auth');
